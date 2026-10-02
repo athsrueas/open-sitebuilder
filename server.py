@@ -112,6 +112,9 @@ def validate_project(p):
             check_text(block, ('title', 'label', 'text'))
             if block.get('fit') not in ('contain', 'cover'):
                 raise ValueError('Invalid image fit.')
+            for key, low, high in (('width', 20, 100), ('height', 120, 1200)):
+                if key in block and (type(block[key]) not in (int, float) or not low <= block[key] <= high):
+                    raise ValueError('Invalid image size.')
             if not isinstance(block.get('images'), list) or any(i not in assets for i in block['images']):
                 raise ValueError('Unknown image.')
             if not isinstance(block.get('spreads'), list) or len(block['spreads']) > 200:

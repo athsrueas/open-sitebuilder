@@ -13,6 +13,18 @@ import server
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_image_size_is_bounded(self):
+        p = server.default_project()
+        b = p['pages'][0]['blocks'][0]
+        b.update(width=65, height=420)
+        server.validate_project(p)
+        for key, value in [('width', 101), ('height', float('nan')), ('width', True)]:
+            prior = b[key]
+            b[key] = value
+            with self.assertRaisesRegex(ValueError, 'size'):
+                server.validate_project(p)
+            b[key] = prior
+
     def test_rejects_duplicate_slugs_and_unsafe_colors(self):
         p = server.default_project()
         another = copy.deepcopy(p['pages'][0])

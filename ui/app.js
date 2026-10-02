@@ -1,4 +1,5 @@
 import { escapeHtml as esc } from '/shared/render.js';
+import { editText, resizeImage, assignArtwork } from '/ui/canvas-model.js';
 const $ = s => document.querySelector(s);
 const id = () => crypto.randomUUID().replaceAll('-','');
 const types = {hero:['◒','Introduction'],image:['▧','Image'],gallery:['▦','Gallery'],carousel:['↔','Carousel'],text:['T','Text'],sketchbook:['▤','Sketchbook'],divider:['―','Divider']};
@@ -13,7 +14,7 @@ async function api(path, value, extra={}) {
 }
 function toast(message){ $('#toast').textContent=message;$('#toast').style.display='block';clearTimeout(cleanupTimer);cleanupTimer=setTimeout(()=>$('#toast').style.display='none',5000); }
 function preview(focus=false){if(!project)return;$('#preview').contentWindow.postMessage({type:'render',project,pageId,blockId,focus},location.origin);$('#page-label').textContent=page().title;}
-function changed(repaint=false,focus=false){revision++;$('#save-status').textContent='Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>save().catch(e=>toast(e.message)),650);if(repaint)render();preview(focus);}
+function changed(repaint=false,focus=false,inline=false){revision++;$('#save-status').textContent='Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>save().catch(e=>toast(e.message)),650);if(repaint)render();if(!inline)preview(focus);}
 function save(){
   clearTimeout(saveTimer);const snapshot=structuredClone(project), version=revision;
   saveQueue=saveQueue.catch(()=>{}).then(async()=>{ $('#save-status').textContent='Saving…';try{await api('project',snapshot);if(revision===version)$('#save-status').textContent='All changes saved';}catch(e){$('#save-status').textContent='Save failed';throw e;} });return saveQueue;
@@ -45,7 +46,8 @@ function renderLeft(){
     document.querySelectorAll('[data-theme]').forEach(el=>el.oninput=()=>{project.theme[el.dataset.theme]=el.type==='checkbox'?el.checked:el.value;changed();});
     $('#preset').onchange=e=>{const presets={paper:['#f5f1e9','#292d29','#798269'],night:['#20241f','#ede9df','#c4b38a'],white:['#ffffff','#252525','#a36f51']};const values=presets[e.target.value];if(values){['background','ink','accent'].forEach((k,i)=>project.theme[k]=values[i]);changed(true);}};
   } else {
-    $('#left-content').innerHTML=`<div class="upload-zone" id="upload-zone"><strong>＋</strong>Drop your artwork here<br><br>or click to choose images<input type="file" id="files" multiple accept="image/jpeg,image/png,image/webp" hidden></div><p class="small-note">JPEG, PNG & WebP · up to 60 MB each.<br>Originals stay local. Web copies up to 5,000 px.</p><div class="asset-grid">${project.assets.map(a=>`<div class="asset-card"><img src="${a.src}" alt="${esc(a.alt)}"><span>${esc(a.name)}</span><small>${a.width} × ${a.height}</small><label style="margin:8px">Alt text<input data-alt="${a.id}" value="${esc(a.alt)}" placeholder="Describe the artwork"></label></div>`).join('')}</div>`;
+    $('#left-content').innerHTML=`<div class="upload-zone" id="upload-zone"><strong>＋</strong>Drop your artwork here<br><br>or click to choose images<input type="file" id="files" multiple accept="image/jpeg,image/png,image/webp" hidden></div><p class="small-note">JPEG, PNG & WebP · up to 60 MB each.<br>Originals stay local. Web copies up to 5,000 px.</p><div class="asset-grid">${project.assets.map(a=>`<div class="asset-card" draggable="true" data-asset-id="${a.id}"><img draggable="false" src="${a.src}" alt="${esc(a.alt)}"><span>${esc(a.name)}</span><small>${a.width} × ${a.height}</small><label style="margin:8px">Alt text<input data-alt="${a.id}" value="${esc(a.alt)}" placeholder="Describe the artwork"></label></div>`).join('')}</div>`;
+    document.querySelectorAll('[data-asset-id]').forEach(el=>el.ondragstart=e=>{e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain','asset:'+el.dataset.assetId);});
     document.querySelectorAll('[data-alt]').forEach(el=>el.oninput=()=>{project.assets.find(a=>a.id===el.dataset.alt).alt=el.value;changed();});
     const zone=$('#upload-zone');zone.onclick=()=>$('#files').click();$('#files').onclick=e=>e.stopPropagation();$('#files').onchange=e=>upload(e.target.files);
     zone.ondragover=e=>{e.preventDefault();zone.classList.add('drop-target');};zone.ondragleave=()=>zone.classList.remove('drop-target');zone.ondrop=e=>{e.preventDefault();upload(e.dataTransfer.files);};
@@ -72,7 +74,56 @@ async function upload(files){
   render();toast('Image import finished. Select a block to use your artwork.');
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;renderLeft();});
-window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('#preview').contentWindow)return;if(e.data.type==='ready')preview();if(e.data.type==='preview-error')toast(e.data.message);if(e.data.type==='select-block'&&page().blocks.some(b=>b.id===e.data.blockId)){blockId=e.data.blockId;render();preview();}if(e.data.type==='drop-block'){const target=e.data.beforeId===null?page().blocks.length:page().blocks.findIndex(b=>b.id===e.data.beforeId);if(target>=0)dropBlock(String(e.data.value),target);}if(e.data.type==='navigate'&&project.pages.some(p=>p.id===e.data.pageId)){pageId=e.data.pageId;blockId=page().blocks[0]?.id;render();preview();}});
+window.addEventListener('message',e=>{
+  if(e.origin!==location.origin||e.source!==$('#preview').contentWindow)return;
+  const d=e.data;
+  if(d.type==='ready'){preview();return;}
+  if(d.type==='preview-error'){toast(d.message);return;}
+  if(!project)return;
+  if(d.type==='project-inline-edit'&&['name','description'].includes(d.field)&&typeof d.value==='string'&&d.value.length<=5000){project[d.field]=d.value;changed(false,false,true);$('#artist-name').textContent=project.name;}
+  const b=page().blocks.find(b=>b.id===d.blockId);
+  if(d.type==='select-block'&&b){blockId=b.id;render();preview();}
+  if(d.type==='inline-edit'&&b&&editText(b,d.spreadId,d.field,d.value)){
+    blockId=b.id;changed(false,false,true);renderLeft();renderInspector();
+  }
+  if(d.type==='edit-end')preview();
+  if(d.type==='resize-image'&&b&&resizeImage(b,d.width,d.height))changed(true);
+  if(d.type==='block-action'&&b){
+    blockId=b.id;
+    const i=page().blocks.indexOf(b);
+    if(d.action==='up'&&i>0)[page().blocks[i-1],page().blocks[i]]=[b,page().blocks[i-1]];
+    if(d.action==='down'&&i<page().blocks.length-1)[page().blocks[i+1],page().blocks[i]]=[b,page().blocks[i+1]];
+    if(d.action==='duplicate'){const clone=structuredClone(b);clone.id=id();clone.spreads.forEach(s=>s.id=id());page().blocks.splice(i+1,0,clone);blockId=clone.id;}
+    if(d.action==='fit'){const spread=b.spreads.find(s=>s.id===d.spreadId);const item=spread||b;item.fit=item.fit==='cover'?'contain':'cover';}
+    changed(true,true);
+  }
+  if(d.type==='add-block'&&types[d.blockType])addBlock(d.blockType);
+  if(d.type==='drop-block'){const target=d.beforeId===null?page().blocks.length:page().blocks.findIndex(b=>b.id===d.beforeId);if(target>=0)dropBlock(String(d.value),target);}
+  if(d.type==='drop-artwork')canvasArtwork(d).catch(err=>toast(err.message));
+  if(d.type==='navigate'&&project.pages.some(p=>p.id===d.pageId)){pageId=d.pageId;blockId=page().blocks[0]?.id;render();preview();}
+});
+async function canvasArtwork(d){
+  // Capture the destination before upload; switching pages must not redirect photos.
+  const destination=page();
+  let target=destination.blocks.find(b=>b.id===d.blockId);
+  const ids=[];
+  if(d.assetId&&project.assets.some(a=>a.id===d.assetId))ids.push(d.assetId);
+  for(const file of d.files||[]){
+    if(!(file instanceof Blob))continue;
+    try{toast('Preparing '+file.name+'…');const asset=await api('upload',file,{'Content-Type':file.type,'X-File-Name':encodeURIComponent(file.name)});project.assets.push(asset);ids.push(asset.id);}
+    catch(err){toast(err.message);}
+  }
+  if(!ids.length)return;
+  if(!target||!['image','gallery','carousel','sketchbook'].includes(target.type)){
+    target=makeBlock(ids.length>1?'gallery':'image');
+    const index=d.beforeId===null?destination.blocks.length:destination.blocks.findIndex(b=>b.id===d.beforeId);
+    destination.blocks.splice(index<0?destination.blocks.length:index,0,target);
+  }
+  assignArtwork(target,ids,d.spreadId||target.spreads[0]?.id);
+  if(pageId===destination.id)blockId=target.id;
+  changed(true,true);toast('Artwork added.');
+}
+$('#details').onclick=()=>{const expanded=document.querySelector('.workspace').classList.toggle('show-details');$('#details').setAttribute('aria-expanded',String(expanded));};
 $('#desktop').onclick=()=>{ $('#preview').classList.remove('mobile');$('#desktop').classList.add('active');$('#mobile').classList.remove('active');};
 $('#mobile').onclick=()=>{ $('#preview').classList.add('mobile');$('#mobile').classList.add('active');$('#desktop').classList.remove('active');};
 $('#preview').addEventListener('load',()=>preview());
