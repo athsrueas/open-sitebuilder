@@ -1,3 +1,4 @@
+import {materialDefs,materialLayers,initMaterials} from './materials.js';
 import {portfolioStyleCss,styleVars} from './styles.js';
 import { extraBlockMarkup, extraBlockCss } from './extra-blocks.js';
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -17,7 +18,7 @@ export function portfolioMarkup(project, pageId) {
     .book-wrap{overflow:hidden;padding:20px 0}.book{margin:auto}.book:not([data-ready]){display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}.book:not([data-ready]) .book-page{height:480px}.book:not([data-ready])+.book-controls{display:none}.book-page{background:var(--paper);padding:24px;overflow:hidden;box-shadow:inset 0 0 25px #00000009}.book-page a{display:block;height:75%}.book-page h3{font-size:18px;font-weight:400}.book-page p{font-size:13px;line-height:1.5}.book-controls{display:flex;justify-content:center;align-items:center;gap:24px;margin-top:20px}.book-controls button{background:transparent;border:1px solid currentColor;padding:10px 16px;color:inherit;cursor:pointer}.rule{border:0;border-top:1px solid #0003}footer{padding:30px 5%;font:12px Arial,sans-serif;border-top:1px solid #0002;text-align:center}@media(max-width:600px){header{align-items:start;flex-direction:column}.gallery{grid-template-columns:1fr}.gallery a,.carousel a{height:320px}.book-page{padding:16px}}
   `;
   const styledCss = css + portfolioStyleCss(t);
-  const html = `<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map((p,i) => `<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${i===0?'/':'/'+p.slug+'/'}">${escapeHtml(p.title)}</a>`).join('')}</nav></header><main>${page.blocks.map(b => {
+  const html = materialDefs+`<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map((p,i) => `<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${i===0?'/':'/'+p.slug+'/'}">${escapeHtml(p.title)}</a>`).join('')}</nav></header><main>${page.blocks.map(b => {
     const heading = `<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div><h2 data-edit="title">${escapeHtml(b.title)}</h2>`;
     let content = extraBlockMarkup(b,project,{esc:escapeHtml,image});
     if(b.type==='hero') content=`<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div><h1 data-edit="title">${escapeHtml(b.title)}</h1><p data-edit="text">${escapeHtml(b.text)}</p>`;
@@ -26,7 +27,7 @@ export function portfolioMarkup(project, pageId) {
     if(b.type==='gallery'||b.type==='carousel') content=heading+`<div class="${b.type}">${b.images.map(id=>`<figure>${image(id,project,b.fit)}</figure>`).join('') || '<div class="image-placeholder">Add images in the editor</div>'}</div>`;
     if(b.type==='divider') content='<hr class="rule" />';
     if(b.type==='sketchbook') content=heading+`<div class="book-wrap"><div class="book" data-book="${b.id}">${b.spreads.map((s,i)=>`<div class="book-page" data-spread-id="${s.id}" style="--paper:${safeColor(s.background)}" data-density="${s.hard?'hard':'soft'}">${image(s.image,project,s.fit)}<h3 data-edit="title">${escapeHtml(s.title)}</h3><p data-edit="caption">${escapeHtml(s.caption)}</p><span class="caption">${i+1}</span></div>`).join('')}</div><div class="book-controls"><button data-prev="${b.id}" aria-label="Previous sketchbook page">← Previous</button><span data-count="${b.id}"></span><button data-next="${b.id}" aria-label="Next sketchbook page">Next →</button></div></div>`;
-    return `<section class="folio-block" data-block="${b.id}" style="${escapeHtml(styleVars(b.styles,true))}">${content}</section>`;
+    return `<section class="folio-block" data-block="${b.id}" style="${escapeHtml(styleVars(b.styles,true))}">${materialLayers}${content}</section>`;
   }).join('')}</main><footer>${escapeHtml(project.name)}${project.description ? " · " : ""}<span data-project-edit="description">${escapeHtml(project.description)}</span></footer>`;
   return { css:styledCss, html };
 }
@@ -41,6 +42,7 @@ export function renderPortfolio(root, project, pageId, PageFlip, navigate) {
 }
 export function initPortfolio(root, PageFlip, navigate) {
   if(navigate) root.querySelectorAll('[data-page]').forEach(a=>a.onclick=e=>{e.preventDefault();navigate(a.dataset.page)});
+  const stopMaterials=initMaterials(root);
   const books=[];
   root.querySelectorAll('[data-book]').forEach(el=>{
     if (!PageFlip) return; // Static pages remain visible if the animation library is unavailable.
@@ -54,5 +56,5 @@ export function initPortfolio(root, PageFlip, navigate) {
     root.querySelector(`[data-prev="${el.dataset.book}"]`).onclick=()=>flip.flipPrev();
     root.querySelector(`[data-next="${el.dataset.book}"]`).onclick=()=>flip.flipNext();books.push(flip);
   });
-  return ()=>books.forEach(b=>b.destroy());
+  return ()=>{stopMaterials();books.forEach(b=>b.destroy());};
 }

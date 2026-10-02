@@ -218,6 +218,121 @@
       "min": 0,
       "max": 100,
       "step": 1
+    },
+    "paperTexture": {
+      "group": "Paper & ink",
+      "label": "Paper surface",
+      "type": "select",
+      "default": "none",
+      "options": [
+        "none",
+        "cotton",
+        "watercolor",
+        "laid",
+        "canvas"
+      ],
+      "labels": {
+        "none": "None",
+        "cotton": "Cotton / drawing paper",
+        "watercolor": "Watercolor / cold press",
+        "laid": "Laid paper / fine lines",
+        "canvas": "Canvas / woven surface"
+      }
+    },
+    "paperStrength": {
+      "group": "Paper & ink",
+      "label": "Paper texture strength (%)",
+      "type": "number",
+      "default": 35,
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": ""
+    },
+    "paperScale": {
+      "group": "Paper & ink",
+      "label": "Paper grain size (px)",
+      "type": "number",
+      "default": 240,
+      "min": 80,
+      "max": 600,
+      "step": 20
+    },
+    "paperMotion": {
+      "group": "Paper & ink",
+      "label": "Paper lighting",
+      "type": "select",
+      "default": "none",
+      "options": [
+        "none",
+        "soft-light"
+      ],
+      "labels": {
+        "none": "None",
+        "soft-light": "Slow moving light"
+      }
+    },
+    "inkFinish": {
+      "group": "Paper & ink",
+      "label": "Heading ink finish",
+      "type": "select",
+      "default": "clean",
+      "options": [
+        "clean",
+        "letterpress",
+        "dry-ink",
+        "bleed"
+      ],
+      "labels": {
+        "clean": "Clean type",
+        "letterpress": "Letterpress impression",
+        "dry-ink": "Dry ink / broken edges",
+        "bleed": "Soft ink bleed"
+      }
+    },
+    "inkWash": {
+      "group": "Paper & ink",
+      "label": "Background ink wash",
+      "type": "select",
+      "default": "none",
+      "options": [
+        "none",
+        "still",
+        "bloom",
+        "drift"
+      ],
+      "labels": {
+        "none": "None",
+        "still": "Still pigment wash",
+        "bloom": "Ink bloom",
+        "drift": "Slow drifting ink"
+      }
+    },
+    "inkWashColor": {
+      "group": "Paper & ink",
+      "label": "Ink wash color",
+      "type": "color",
+      "default": "#514b43"
+    },
+    "inkWashStrength": {
+      "group": "Paper & ink",
+      "label": "Ink wash strength (%)",
+      "type": "number",
+      "default": 12,
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": ""
+    },
+    "materialDuration": {
+      "group": "Paper & ink",
+      "label": "Motion cycle (seconds)",
+      "type": "number",
+      "default": 24,
+      "min": 6,
+      "max": 90,
+      "step": 1,
+      "unit": "s"
     }
   },
   "presets": [
@@ -256,7 +371,16 @@
         "radius": 0,
         "galleryColumns": 2,
         "imageHeight": 400,
-        "gridGap": 22
+        "gridGap": 22,
+        "paperTexture": "none",
+        "paperStrength": 35,
+        "paperScale": 240,
+        "paperMotion": "none",
+        "inkFinish": "clean",
+        "inkWash": "none",
+        "inkWashColor": "#514b43",
+        "inkWashStrength": 12,
+        "materialDuration": 24
       }
     },
     {
@@ -294,7 +418,16 @@
         "radius": 0,
         "galleryColumns": 1,
         "imageHeight": 640,
-        "gridGap": 32
+        "gridGap": 32,
+        "paperTexture": "none",
+        "paperStrength": 35,
+        "paperScale": 240,
+        "paperMotion": "none",
+        "inkFinish": "clean",
+        "inkWash": "none",
+        "inkWashColor": "#514b43",
+        "inkWashStrength": 12,
+        "materialDuration": 24
       }
     },
     {
@@ -328,7 +461,16 @@
         "radius": 0,
         "galleryColumns": 3,
         "imageHeight": 280,
-        "gridGap": 22
+        "gridGap": 22,
+        "paperTexture": "none",
+        "paperStrength": 35,
+        "paperScale": 240,
+        "paperMotion": "none",
+        "inkFinish": "clean",
+        "inkWash": "none",
+        "inkWashColor": "#514b43",
+        "inkWashStrength": 12,
+        "materialDuration": 24
       }
     },
     {
@@ -366,7 +508,16 @@
         "radius": 0,
         "galleryColumns": 2,
         "imageHeight": 400,
-        "gridGap": 22
+        "gridGap": 22,
+        "paperTexture": "none",
+        "paperStrength": 35,
+        "paperScale": 240,
+        "paperMotion": "none",
+        "inkFinish": "clean",
+        "inkWash": "none",
+        "inkWashColor": "#514b43",
+        "inkWashStrength": 12,
+        "materialDuration": 24
       }
     },
     {
@@ -404,7 +555,16 @@
         "radius": 0,
         "galleryColumns": 2,
         "imageHeight": 560,
-        "gridGap": 32
+        "gridGap": 32,
+        "paperTexture": "none",
+        "paperStrength": 35,
+        "paperScale": 240,
+        "paperMotion": "none",
+        "inkFinish": "clean",
+        "inkWash": "none",
+        "inkWashColor": "#514b43",
+        "inkWashStrength": 12,
+        "materialDuration": 24
       }
     },
     {
@@ -442,7 +602,16 @@
         "radius": 0,
         "galleryColumns": 2,
         "imageHeight": 400,
-        "gridGap": 22
+        "gridGap": 22,
+        "paperTexture": "none",
+        "paperStrength": 35,
+        "paperScale": 240,
+        "paperMotion": "none",
+        "inkFinish": "clean",
+        "inkWash": "none",
+        "inkWashColor": "#514b43",
+        "inkWashStrength": 12,
+        "materialDuration": 24
       }
     }
   ]

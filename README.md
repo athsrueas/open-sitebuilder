@@ -65,6 +65,7 @@ The catalogue is based on the standard types documented by [WordPress](https://w
 - Open **Styles → Theme presets** to choose Gallery white, Exhibition, Studio archive, Editorial, Dark viewing room, or Print catalogue. These set colors, typography, widths, spacing, and artwork grid defaults without changing content or existing block overrides. References are linked in the picker.
 - Adjust **Site defaults** for heading/body fonts, colors, font sizes, line/letter spacing, alignment, page width, padding, image corners, gallery columns, image height, and grid spacing. Fonts are local system stacks; no external font service is required.
 - Open **Styles** in a block’s canvas toolbar (or **Details → Block styles**). Check a setting to override its site default, then edit it directly. Uncheck it to inherit again, or use **Reset block styles** to clear all overrides. New blocks inherit automatically. These controls change the live preview and the Astro export. Check desktop and mobile previews.
+- Open **Paper & ink** in site defaults or a block’s canvas styles for paper surfaces, slow lighting, heading ink finishes and pigment washes. Adjust strength, scale, color and motion speed. See [paper and ink materials](PAPER-AND-INK.md) for techniques and research.
 - Changes save automatically. Click **Build site** to generate `site/dist` and open the built preview.
 
 The preview and Astro output share `shared/render.js`. The editor itself is plain JavaScript and CSS; no frontend framework or Node dev server is needed while editing.
@@ -92,7 +93,7 @@ Official references: [StPageFlip](https://github.com/Nodlik/StPageFlip), [Cloudf
 
 ## Data and photos
 
-Back up the entire `data` folder. It contains `project.json`, nonsecret Cloudflare configuration, original uploads, and processed web images. Original bytes remain local. Images are orientation-corrected, metadata removed, and converted to WebP at up to 2,400 px for the portfolio and 5,000 px for the full-size link. Images are never upscaled. Import supports up to 60 MB and 80 megapixels per image. Transparency is flattened against white. Published original downloads and images above 5,000 px are not included in this first version.
+Back up the entire `data` folder. It contains `project.json`, nonsecret Cloudflare configuration, original uploads, and processed web images. Original bytes remain local. Images are orientation-corrected, metadata removed, and converted to WebP at up to 2,400 px for the portfolio and 5,000 px for the full-size link. Images are never upscaled. Import supports up to 60 MB and 80 megapixels per image. Transparency is preserved. Published original downloads and images above 5,000 px are not included in this first version.
 
 The server binds only to `127.0.0.1`; host checks and a per-launch request token protect writes. Do not expose it with a tunnel or bind it to a network interface. No analytics, remote fonts, or external image dependencies are included.
 

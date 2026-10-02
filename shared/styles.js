@@ -1,3 +1,4 @@
+import {materialVars,materialCss} from './materials.js';
 import catalog from './styles.json' with {type:'json'};
 export const {fonts:FONTS,fields:STYLE_FIELDS,presets:THEMES}=catalog;
 export function validStyle(key,value,block=false){
@@ -17,12 +18,13 @@ export function styleVars(values,block=false){
   const result=[];
   for(const [k,v] of Object.entries(values||{})){
     if(!validStyle(k,v,block))continue;
-    const f=STYLE_FIELDS[k],value=k.endsWith('Font')?FONTS[v].css:f.type==='number'&&!['lineHeight','galleryColumns'].includes(k)?v+'px':v;
+    const f=STYLE_FIELDS[k],value=k.endsWith('Font')?FONTS[v].css:f.type==='number'&&!['lineHeight','galleryColumns'].includes(k)?v+(f.unit??'px'):v;
     result.push(`--${k==='background'&&block?'panel':k}:${value}`);
   }
   if(block&&validStyle('ink',values?.ink)&&!values.headingInk)result.push(`--headingInk:${values.ink}`);
   if(block&&validStyle('ink',values?.ink))result.push(`--coverInk:${values.ink}`);
   if(block&&validStyle('headingInk',values?.headingInk||values?.ink))result.push(`--coverHeadingInk:${values.headingInk||values.ink}`);
+  const materials=materialVars(values||{},block);if(materials)result.push(materials);
   return result.join(';');
 }
 export function applyTheme(project,id){
@@ -59,4 +61,4 @@ main,header{max-width:var(--contentWidth)}
 .folio-block .book-page p{font-size:13px}
 nav a.active{border-color:var(--accent)}
 @media(max-width:600px){.folio-block .gallery{grid-template-columns:1fr}.folio-block .gallery a,.folio-block .carousel a,.folio-block .artwork-cards img{height:min(var(--imageHeight),400px)}.folio-block{padding:min(var(--padding),24px)}}
-`;}
+${materialCss}`;}
