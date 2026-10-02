@@ -14,6 +14,10 @@ Setup installs Pillow and the Node dependencies and creates a **Folio Studio** d
 
 The shortcut starts the server in the background. To stop it, click **Settings → Close studio**. The foreground command can be stopped with Ctrl+C. This is a source-based application, not a packaged installer yet.
 
+## Workspace appearance
+
+The editor uses a minimal black-and-white interface. **Workspace** lets you choose a studio icon and add optional stickers. Drag stickers to move them; arrow keys also move focused stickers, and Delete removes one. Hide them with **Show workspace stickers**, or remove them in the appearance panel. These preferences are stored in this browser and are never included in the portfolio or its published site.
+
 ## Build a portfolio
 
 - Set the artist name and description in Settings.

@@ -1,0 +1,44 @@
+/* Editor chrome. The portfolio inside the iframe keeps its own selected theme. */
+:root{font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#111;background:#fff}
+button,input,textarea,select{border-radius:0;transition:none}
+button{border-color:#ccc;font-weight:500}button:hover{background:#eee}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #111;outline-offset:3px}
+button.primary{background:#111;border-color:#111}button.primary:hover{background:#333}
+.toolbar{height:76px;border-bottom:1px solid #111;padding:0 24px;gap:24px}
+.brand{font-size:20px;letter-spacing:-.7px;font-weight:700;min-width:220px}
+.brand-mark{font:700 15px Arial,sans-serif;letter-spacing:-1px;background:#111;color:#fff;border-radius:0;width:38px;height:38px;display:grid;place-items:center}
+.brand-mark.decorated{font:24px Arial,sans-serif;letter-spacing:0;background:#fff;color:#111;border:1px solid #111}
+#save-status{color:#555;font:11px "Courier New",monospace}
+.workspace{height:calc(100vh - 76px);position:relative;isolation:isolate}
+aside{background:#fff}.left-panel,.right-panel{border-color:#ccc;padding-top:24px}
+h2{font-family:Arial,Helvetica,sans-serif;font-size:27px;font-weight:700;letter-spacing:-.8px;line-height:1.15}
+h3{font-size:13px;letter-spacing:0;text-transform:none}
+.project-label,.section-title{color:#555;font:10px "Courier New",monospace;letter-spacing:1px}
+.project-label span{border-color:#ccc;border-radius:0;color:#555}
+.tabs{border-color:#ccc}.tabs button{color:#555;font-size:12px}.tabs button.active{color:#111;border-color:#111;font-weight:700}
+.page-item>button:first-child{border-radius:0}.page-item.active>button:first-child{background:#111;color:#fff}.page-item.active small{color:#ddd}
+.page-item small,.block-item small,.asset-card small{color:#555}
+.icon-button,.drag-grip,.block-symbol{color:#555}
+.block-item,.asset-card,.theme-card{border-color:#ccc;border-radius:0}
+.block-item.selected{border-color:#111;background:#f1f1f1}
+.block-symbol{font-family:Arial,sans-serif}.palette button span{color:#111}
+.canvas-area{background:#f1f1f1}.canvas-toolbar{color:#333;font:10px "Courier New",monospace;letter-spacing:0}
+.canvas-toolbar #page-label{color:#555}.device-switch button{color:#555;border-radius:0}.device-switch .active{background:#111;color:#fff}
+.preview-wrap{padding:0 20px}iframe{border:1px solid #ccc;border-radius:0;box-shadow:none;background:#fff}
+.canvas-foot{font:11px Arial,sans-serif;color:#555}.status-dot{background:#111}
+label,.check{color:#333;font-size:12px}input,textarea,select{color:#111;border-color:#bbb;font-size:12px}input[type=checkbox]{accent-color:#111}
+.muted,.small-note,.local-note,.empty-state{color:#555}.small-note{font-size:11px;line-height:1.6}
+.inspector-type{color:#333;background:#eee;border-radius:0;letter-spacing:.5px}
+.danger{color:#111;text-decoration:underline}.asset-card.selected{outline-color:#111}
+.upload-zone{color:#333;background:#fafafa;border-color:#777;border-radius:0}.spread-item{background:#fafafa;border-color:#ccc;border-radius:0}
+dialog{color:#111;border-color:#111;border-radius:0;box-shadow:0 15px 50px #0002}dialog::backdrop{background:#0005;backdrop-filter:none}
+pre{color:#333;font-family:"Courier New",monospace}#job-link{color:#111}
+#toast{background:#111;border-radius:0}.drop-target{outline-color:#111}
+.block-group,.style-group{border-color:#ccc}.block-group summary,.block-group summary small{color:#333}
+.theme-card a{color:#111}.theme-picker>summary{cursor:pointer;font-weight:700;padding:12px 0}
+.workspace-stickers{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden}
+.workspace-stickers[hidden]{display:none}.workspace-sticker{position:absolute;pointer-events:auto;cursor:grab;touch-action:none;user-select:none;display:grid;place-items:center;width:60px;height:60px;padding:0;border:0;background:transparent;font:44px "Segoe UI Emoji",sans-serif;filter:drop-shadow(0 2px 1px #0002)}
+.workspace-sticker:hover{background:transparent;outline:1px dashed #555}.workspace-sticker:active{cursor:grabbing}
+.decoration-palette{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.decoration-palette button{height:48px;padding:4px;font-size:24px}.decoration-palette button[aria-pressed=true]{border:2px solid #111;background:#eee}
+.placed-sticker{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #ddd;padding:8px 0}.placed-sticker span{font-size:16px}
+@media(max-width:850px){.toolbar{height:auto;min-height:76px;flex-wrap:wrap;padding:12px 15px}.toolbar-actions{flex-wrap:wrap}.workspace{min-height:calc(100vh - 76px)}.brand{min-width:0}.preview-wrap{padding:0 12px}}
