@@ -24,7 +24,7 @@ export function portfolioMarkup(project, pageId) {
     if(b.type==='divider') content='<hr class="rule" />';
     if(b.type==='sketchbook') content=heading+`<div class="book-wrap"><div class="book" data-book="${b.id}">${b.spreads.map((s,i)=>`<div class="book-page" data-spread-id="${s.id}" style="--paper:${safeColor(s.background)}" data-density="${s.hard?'hard':'soft'}">${image(s.image,project,s.fit)}<h3 data-edit="title">${escapeHtml(s.title)}</h3><p data-edit="caption">${escapeHtml(s.caption)}</p><span class="caption">${i+1}</span></div>`).join('')}</div><div class="book-controls"><button data-prev="${b.id}" aria-label="Previous sketchbook page">← Previous</button><span data-count="${b.id}"></span><button data-next="${b.id}" aria-label="Next sketchbook page">Next →</button></div></div>`;
     return `<section class="folio-block" data-block="${b.id}">${content}</section>`;
-  }).join('')}</main><footer>${escapeHtml(project.name)} · <span data-project-edit="description">${escapeHtml(project.description)}</span></footer>`;
+  }).join('')}</main><footer>${escapeHtml(project.name)}${project.description ? " · " : ""}<span data-project-edit="description">${escapeHtml(project.description)}</span></footer>`;
   return { css, html };
 }
 export function renderPortfolio(root, project, pageId, PageFlip, navigate) {

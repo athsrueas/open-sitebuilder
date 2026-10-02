@@ -52,15 +52,15 @@ def identifier():
     return uuid.uuid4().hex
 
 def default_project():
-    return {'version': 1, 'name': 'Your name', 'description': 'An artist’s collection of observations, experiments, and finished work.',
+    return {'version': 1, 'name': 'Your name', 'description': '',
         'theme': {'background': '#f5f1e9', 'ink': '#292d29', 'accent': '#798269', 'serif': True, 'wide': False, 'spacious': True, 'rounded': False},
         'assets': [], 'pages': [{'id': identifier(), 'title': 'Selected work', 'slug': 'selected-work', 'blocks': [
-            {'id': identifier(), 'type': 'hero', 'label': 'An independent artist', 'title': 'A place for your\ncreative world.', 'text': 'Gather your paintings, photographs, and the pages in between.', 'images': [], 'spreads': [], 'fit': 'contain'},
-            {'id': identifier(), 'type': 'sketchbook', 'label': 'From the studio', 'title': 'Notes & observations', 'text': '', 'images': [], 'fit': 'contain', 'spreads': [
-                {'id': identifier(), 'image': '', 'title': 'A new sketchbook', 'caption': 'Every idea starts somewhere. Add your first scan.', 'background': '#e8e3d6', 'hard': True, 'fit': 'contain'},
-                {'id': identifier(), 'image': '', 'title': 'First observations', 'caption': 'A quiet moment, a quick line.', 'background': '#faf7ef', 'hard': False, 'fit': 'contain'},
-                {'id': identifier(), 'image': '', 'title': 'Studies in light', 'caption': 'Collect what catches your eye.', 'background': '#faf7ef', 'hard': False, 'fit': 'contain'},
-                {'id': identifier(), 'image': '', 'title': 'To be continued', 'caption': '', 'background': '#e8e3d6', 'hard': True, 'fit': 'contain'}]}]}]}
+            {'id': identifier(), 'type': 'hero', 'label': '', 'title': 'Selected work', 'text': '', 'images': [], 'spreads': [], 'fit': 'contain'},
+            {'id': identifier(), 'type': 'sketchbook', 'label': '', 'title': 'Sketchbook', 'text': '', 'images': [], 'fit': 'contain', 'spreads': [
+                {'id': identifier(), 'image': '', 'title': 'Page 1', 'caption': '', 'background': '#e8e3d6', 'hard': True, 'fit': 'contain'},
+                {'id': identifier(), 'image': '', 'title': 'Page 2', 'caption': '', 'background': '#faf7ef', 'hard': False, 'fit': 'contain'},
+                {'id': identifier(), 'image': '', 'title': 'Page 3', 'caption': '', 'background': '#faf7ef', 'hard': False, 'fit': 'contain'},
+                {'id': identifier(), 'image': '', 'title': 'Page 4', 'caption': '', 'background': '#e8e3d6', 'hard': True, 'fit': 'contain'}]}]}]}
 
 def atomic_json(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
