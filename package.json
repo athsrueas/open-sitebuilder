@@ -1,0 +1,9 @@
+{
+  "name": "folio-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "astro build --root site" },
+  "dependencies": { "astro": "6.4.8", "page-flip": "2.0.7" },
+  "devDependencies": { "wrangler": "4.146.0" }
+}

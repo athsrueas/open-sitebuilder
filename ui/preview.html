@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Portfolio preview</title></head><body><div id="portfolio"></div><script src="/vendor/page-flip.js"></script><script type="module">
+import { renderPortfolio } from '/shared/render.js';
+let cleanup;
+window.addEventListener('message', e => {
+  if(e.origin !== location.origin || e.source !== parent || e.data.type !== 'render') return;
+  cleanup?.();
+  cleanup = renderPortfolio(document.querySelector('#portfolio'), e.data.project, e.data.pageId, window.St.PageFlip,
+    pageId => parent.postMessage({type:'navigate',pageId},location.origin));
+});
+parent.postMessage({type:'ready'},location.origin);
+</script></body></html>

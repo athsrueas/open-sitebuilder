@@ -1,0 +1,11 @@
+node_modules/
+data/
+site/public/media/
+site/src/project.json
+site/dist/
+site/.astro/
+__pycache__/
+*.log
+.env
+.env.*
+!.env.example

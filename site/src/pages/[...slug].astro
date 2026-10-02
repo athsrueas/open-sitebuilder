@@ -1,0 +1,22 @@
+---
+import project from '../project.json';
+import { portfolioMarkup } from '../../../shared/render.js';
+export function getStaticPaths() {
+  return project.pages.map((page, index) => ({params: {slug: index === 0 ? undefined : page.slug}, props: {page}}));
+}
+const { page } = Astro.props;
+const { css, html } = portfolioMarkup(project, page.id);
+---
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><meta name="description" content={project.description} /><title>{page.title} · {project.name}</title></head>
+  <body>
+    <style is:inline set:html={css}></style>
+    <div id="portfolio" set:html={html}></div>
+    <script>
+      import { PageFlip } from 'page-flip';
+      import { initPortfolio } from '../../../shared/render.js';
+      initPortfolio(document.querySelector('#portfolio'), PageFlip);
+    </script>
+  </body>
+</html>
