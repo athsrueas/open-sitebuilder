@@ -14,6 +14,22 @@ Setup installs Pillow and the Node dependencies and creates a **Folio Studio** d
 
 The shortcut starts the server in the background. To stop it, click **Settings → Close studio**. The foreground command can be stopped with Ctrl+C. This is a source-based application, not a packaged installer yet.
 
+## Media management and image editing
+
+Open **Media** for the dedicated import and management screen. Import several JPEG/PNG/WebP images, search names and descriptions, edit file names and alt text, view image versions, download original files, add images to the current page, and archive/restore library entries. Archive hides an image without deleting it or breaking existing pages.
+
+Click **Edit image** on artwork in the canvas or on an image in the Images sidebar. The editor includes:
+
+- Crop with movable handles and free/square/portrait/landscape ratios; rotate and flip.
+- Pixel resizing with proportions locked by default and Pica's high-quality resampling.
+- Brightness, contrast, saturation, opacity, and grayscale; adjustment sliders preview live.
+- Color-based connected background removal with adjustable tolerance; erase/restore brushes with adjustable size and soft edges. This is a color selection tool, not AI subject segmentation.
+- Undo/redo, reset, fit/100%/200% zoom, and transparent PNG download.
+
+**Save new version** preserves the source file and adds an edited copy to the library. Contextual edits can replace just the clicked image; library edits can optionally replace all uses. The checkbox controls this. Imports and generated WebP assets preserve alpha transparency. Edits operate on the web copy (up to 5,000 px); the original upload stays available separately. Image edits allow up to 25 megapixels and 6,000 px per side. WebP exports above 5,000 px are scaled to the existing web-copy limit.
+
+The editor serves pinned local copies of Cropper.js 2.2.0, Pica 10.0.3, and magic-wand-tool 1.1.7. Each is MIT licensed; full notices are in [THIRD-PARTY-IMAGE-LICENSES.md](THIRD-PARTY-IMAGE-LICENSES.md). Run setup.ps1 after updating dependencies. No external image editing service receives artwork.
+
 ## Workspace appearance
 
 The editor uses a minimal black-and-white interface. **Workspace** lets you choose a studio icon and add optional stickers. Drag stickers to move them; arrow keys also move focused stickers, and Delete removes one. Hide them with **Show workspace stickers**, or remove them in the appearance panel. These preferences are stored in this browser and are never included in the portfolio or its published site.

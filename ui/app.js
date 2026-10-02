@@ -1,3 +1,5 @@
+import {editImage} from '/ui/image-editor.js';
+import {openMediaLibrary} from '/ui/media-library.js';
 import {THEMES,validStyle,applyTheme,setBlockStyle} from '/shared/styles.js';
 import {styleControls,wireStyleControls} from '/ui/style-controls.js';
 import { BLOCKS, IMAGE_TYPES, SINGLE_IMAGE_TYPES, safeUrl } from '/shared/blocks.js';
@@ -52,9 +54,11 @@ function renderLeft(){
     $('.theme-picker').ontoggle=e=>{themesOpen=e.target.open;};
     wireStyleControls($('#site-style-controls'),project.theme,null,(key,value)=>{if(validStyle(key,value)){project.theme[key]=value;delete project.theme.preset;changed();}});
   } else {
-    $('#left-content').innerHTML=`<div class="upload-zone" id="upload-zone"><strong>＋</strong>Drop your artwork here<br><br>or click to choose images<input type="file" id="files" multiple accept="image/jpeg,image/png,image/webp" hidden></div><p class="small-note">JPEG, PNG & WebP · up to 60 MB each.<br>Originals stay local. Web copies up to 5,000 px.</p><div class="asset-grid">${project.assets.map(a=>`<div class="asset-card" draggable="true" data-asset-id="${a.id}"><img draggable="false" src="${a.src}" alt="${esc(a.alt)}"><span>${esc(a.name)}</span><small>${a.width} × ${a.height}</small><label style="margin:8px">Alt text<input data-alt="${a.id}" value="${esc(a.alt)}" placeholder="Describe the artwork"></label></div>`).join('')}</div>`;
+    $('#left-content').innerHTML=`<button id="open-media-library" class="wide-button">Open media library</button><div class="upload-zone" id="upload-zone"><strong>＋</strong>Drop your artwork here<br><br>or click to choose images<input type="file" id="files" multiple accept="image/jpeg,image/png,image/webp" hidden></div><p class="small-note">JPEG, PNG & WebP · up to 60 MB each.<br>Originals stay local. Web copies up to 5,000 px.</p><div class="asset-grid">${project.assets.filter(a=>!a.archived).map(a=>`<div class="asset-card" draggable="true" data-asset-id="${a.id}"><img draggable="false" src="${a.src}" alt="${esc(a.alt)}"><span>${esc(a.name)}</span><small>${a.width} × ${a.height}</small><button class="asset-edit-button" data-edit-asset="${a.id}">Edit image</button><label style="margin:8px">Alt text<input data-alt="${a.id}" value="${esc(a.alt)}" placeholder="Describe the artwork"></label></div>`).join('')}</div>`;
     document.querySelectorAll('[data-asset-id]').forEach(el=>el.ondragstart=e=>{e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain','asset:'+el.dataset.assetId);});
     document.querySelectorAll('[data-alt]').forEach(el=>el.oninput=()=>{project.assets.find(a=>a.id===el.dataset.alt).alt=el.value;changed();});
+    $('#open-media-library').onclick=mediaLibrary;
+    document.querySelectorAll('[data-edit-asset]').forEach(el=>el.onclick=()=>openImageEditor(el.dataset.editAsset));
     const zone=$('#upload-zone');zone.onclick=()=>$('#files').click();$('#files').onclick=e=>e.stopPropagation();$('#files').onchange=e=>upload(e.target.files);
     zone.ondragover=e=>{e.preventDefault();zone.classList.add('drop-target');};zone.ondragleave=()=>zone.classList.remove('drop-target');zone.ondrop=e=>{e.preventDefault();upload(e.dataTransfer.files);};
   }
@@ -116,6 +120,7 @@ window.addEventListener('message',e=>{
   if(d.type==='inline-edit'&&b&&editText(b,d.spreadId,d.field,d.value,d.itemIndex)){
     blockId=b.id;changed(false,false,true);renderLeft();renderInspector();
   }
+  if(d.type==='edit-image'&&b&&project.assets.some(a=>a.id===d.assetId))openImageEditor(d.assetId,{blockId:b.id,spreadId:d.spreadId,imageIndex:d.imageIndex}).catch(err=>toast(err.message));
   if(d.type==='edit-end')preview();
   if(d.type==='block-style'&&b&&setBlockStyle(b,d.key,d.value)){changed(false,false,true);renderInspector();}
   if(d.type==='reset-block-styles'&&b){delete b.styles;changed(true);}
@@ -158,6 +163,17 @@ async function canvasArtwork(d){
   if(pageId===destination.id)blockId=target.id;
   changed(true,true);toast('Artwork added.');
 }
+async function openImageEditor(assetId,context=null,onSaved=()=>{}){
+  const asset=project.assets.find(a=>a.id===assetId);if(!asset)return;
+  await editImage(asset,{context:Boolean(context),save:async(blob,source)=>{await save();return api('upload',blob,{'Content-Type':'image/png','X-File-Name':encodeURIComponent(source.name.replace(/\.[^.]+$/,'')+'-edited.png'),'X-Source-Asset':source.id});},onSaved:async(edited,use)=>{
+    edited.alt=asset.alt;project.assets.push(edited);
+    if(use&&context){const target=project.pages.flatMap(p=>p.blocks).find(b=>b.id===context.blockId);if(target){if(context.spreadId){const spread=target.spreads.find(s=>s.id===context.spreadId);if(spread?.image===assetId)spread.image=edited.id;}else if(target.images[context.imageIndex]===assetId)target.images[context.imageIndex]=edited.id;}}
+    else if(use){for(const p of project.pages)for(const b of p.blocks){b.images=b.images.map(id=>id===assetId?edited.id:id);for(const spread of b.spreads)if(spread.image===assetId)spread.image=edited.id;}}
+    changed(true);await save();onSaved(edited);toast('Edited image saved as a new version.');
+  }});
+}
+function mediaLibrary(){openMediaLibrary({getProject:()=>project,upload:async files=>{await upload(files);await save();},edit:openImageEditor,onChange:()=>changed(),addToPage:assetId=>{const b=makeBlock('image');b.images=[assetId];page().blocks.push(b);blockId=b.id;changed(true,true);}});}
+$('#media-library').onclick=mediaLibrary;
 $('#details').onclick=()=>{const expanded=document.querySelector('.workspace').classList.toggle('show-details');$('#details').setAttribute('aria-expanded',String(expanded));};
 $('#desktop').onclick=()=>{ $('#preview').classList.remove('mobile');$('#desktop').classList.add('active');$('#mobile').classList.remove('active');};
 $('#mobile').onclick=()=>{ $('#preview').classList.add('mobile');$('#mobile').classList.add('active');$('#desktop').classList.remove('active');};

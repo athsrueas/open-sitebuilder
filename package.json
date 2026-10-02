@@ -3,7 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "build": "astro build --root site" },
-  "dependencies": { "astro": "6.4.8", "page-flip": "2.0.7" },
-  "devDependencies": { "wrangler": "4.146.0" }
+  "scripts": {
+    "build": "astro build --root site"
+  },
+  "dependencies": {
+    "astro": "6.4.8",
+    "cropperjs": "2.2.0",
+    "magic-wand-tool": "1.1.7",
+    "page-flip": "2.0.7",
+    "pica": "10.0.3"
+  },
+  "devDependencies": {
+    "wrangler": "4.146.0"
+  }
 }

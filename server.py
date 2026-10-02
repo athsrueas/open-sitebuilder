@@ -278,6 +278,20 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(200, JOB.copy())
         if path == '/vendor/page-flip.js':
             return self.file(ROOT / 'node_modules/page-flip/dist/js', 'page-flip.browser.js')
+        vendors = {'/vendor/cropper.js': ('cropperjs/dist', 'cropper.esm.js'),
+                   '/vendor/pica.js': ('pica/dist', 'pica.min.mjs'),
+                   '/vendor/magic-wand.js': ('magic-wand-tool/dist', 'magic-wand.js')}
+        if path in vendors:
+            folder, filename = vendors[path]
+            return self.file(ROOT / 'node_modules' / folder, filename)
+        if path.startswith('/api/original/'):
+            uid = path.removeprefix('/api/original/')
+            if not re.fullmatch(r'[a-f0-9]{32}', uid) or not any(a['id'] == uid for a in load_project()['assets']):
+                return self.reply(404, {'error': 'Unknown image.'})
+            for extension in ('.jpg', '.png', '.webp'):
+                if (DATA / 'originals' / (uid + extension)).is_file():
+                    return self.file(DATA / 'originals', uid + extension)
+            return self.reply(404, {'error': 'Original unavailable.'})
         for prefix, base in (('/ui/', ROOT / 'ui'), ('/shared/', ROOT / 'shared'), ('/media/', DATA / 'media'), ('/built/', ROOT / 'site/dist')):
             if path.startswith(prefix):
                 relative = path[len(prefix):]
@@ -314,6 +328,9 @@ class Handler(BaseHTTPRequestHandler):
                                 if not isinstance(update[field], str) or len(update[field]) > 1000:
                                     raise ValueError('Invalid image description.')
                                 asset[field] = update[field]
+                        if 'archived' in update:
+                            if not isinstance(update['archived'], bool): raise ValueError('Invalid archive setting.')
+                            asset['archived'] = update['archived']
                     value['assets'] = stored_assets
                     validate_project(value)
                     atomic_json(DATA / 'project.json', value)
@@ -349,6 +366,9 @@ class Handler(BaseHTTPRequestHandler):
             self.reply(500, {'error': 'Local operation failed. Check available disk space and restart the editor.'})
 
     def upload(self, body):
+        source_id = self.headers.get('X-Source-Asset', '')
+        if source_id and not any(a['id'] == source_id for a in load_project()['assets']):
+            raise ValueError('Unknown source image.')
         with Image.open(io.BytesIO(body)) as opened:
             if opened.format not in ('JPEG', 'PNG', 'WEBP'):
                 raise ValueError('Upload a JPEG, PNG, or WebP image.')
@@ -357,9 +377,7 @@ class Handler(BaseHTTPRequestHandler):
             original_format = opened.format
             oriented = ImageOps.exif_transpose(opened)
             if oriented.mode in ('RGBA', 'LA', 'P'):
-                rgba = oriented.convert('RGBA')
-                img = Image.new('RGB', rgba.size, 'white')
-                img.paste(rgba, mask=rgba.getchannel('A'))
+                img = oriented.convert('RGBA')
             else:
                 img = oriented.convert('RGB')
         uid = identifier()
@@ -369,10 +387,13 @@ class Handler(BaseHTTPRequestHandler):
         for size, suffix, quality in ((2400, '', 86), (5000, '-full', 92)):
             resized = img.copy()
             resized.thumbnail((size, size), Image.Resampling.LANCZOS)
-            resized.save(DATA / 'media' / f'{uid}{suffix}.webp', 'WEBP', quality=quality)
+            resized.save(DATA / 'media' / f'{uid}{suffix}.webp', 'WEBP', quality=quality,
+                         lossless=img.mode == 'RGBA' or original_format == 'PNG')
         name = urllib.parse.unquote(self.headers.get('X-File-Name', 'Artwork'))[:200]
         asset = {'id': uid, 'name': name, 'alt': Path(name).stem, 'width': width, 'height': height,
             'src': f'/media/{uid}.webp', 'full': f'/media/{uid}-full.webp'}
+        if source_id:
+            asset['parentId'] = source_id
         with LOCK:
             project = load_project()
             project['assets'].append(asset)

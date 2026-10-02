@@ -4,7 +4,7 @@ export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => 
 const safeColor = v => /^#[0-9a-f]{6}$/i.test(v) ? v : '#f3eee5';
 const image = (id, project, fit='contain') => {
   const asset = project.assets.find(a => a.id === id);
-  return asset ? `<a href="${escapeHtml(asset.full)}" target="_blank" rel="noopener"><img src="${escapeHtml(asset.src)}" alt="${escapeHtml(asset.alt)}" loading="lazy" style="object-fit:${fit === 'cover' ? 'cover':'contain'}" /></a>` : '<div class="image-placeholder">Add artwork to this block</div>';
+  return asset ? `<a href="${escapeHtml(asset.full)}" target="_blank" rel="noopener"><img data-asset-id="${escapeHtml(asset.id)}" src="${escapeHtml(asset.src)}" alt="${escapeHtml(asset.alt)}" loading="lazy" style="object-fit:${fit === 'cover' ? 'cover':'contain'}" /></a>` : '<div class="image-placeholder">Add artwork to this block</div>';
 };
 export function portfolioMarkup(project, pageId) {
   const page = project.pages.find(p => p.id === pageId) || project.pages[0];

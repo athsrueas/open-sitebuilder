@@ -11,9 +11,18 @@ importers:
       astro:
         specifier: 6.4.8
         version: 6.4.8(rollup@4.63.6)(supports-color@10.2.2)
+      cropperjs:
+        specifier: 2.2.0
+        version: 2.2.0
+      magic-wand-tool:
+        specifier: 1.1.7
+        version: 1.1.7
       page-flip:
         specifier: 2.0.7
         version: 2.0.7
+      pica:
+        specifier: 10.0.3
+        version: 10.0.3
     devDependencies:
       wrangler:
         specifier: 4.146.0
@@ -109,6 +118,39 @@ packages:
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
+
+  '@cropper/element-canvas@2.2.0':
+    resolution: {integrity: sha512-H0Ay2ZSZrxWLP/8fSudH9hghsgIJh9fCgEmpfzD7MnQbE8HdQKljnoRxbrjuFT7Y0rmf405Sp9PmNA6T4twegw==}
+
+  '@cropper/element-crosshair@2.2.0':
+    resolution: {integrity: sha512-RXNhlsCd7lPTTjR2rfUEYghaL5bkqiU70qojJCUz1EIKfLriToDztjlsw3TZKJUBHYA+JOnmTBDFTnizoMUN1w==}
+
+  '@cropper/element-grid@2.2.0':
+    resolution: {integrity: sha512-1hxHLi7Jrek/xxeG12a9+TO18Ot4pCG4V9Zh+A0GMLsfFjrd2k/kl0wOq0x1isNNrP3kkIw47FdID2iWR8A48A==}
+
+  '@cropper/element-handle@2.2.0':
+    resolution: {integrity: sha512-+WPzHWF96RtLTAtotIcQQ6Sx3zVLQdK+qbaM2yKa841Iz60gQ3qKk7Jl5ndy2OgkEfxZaJI/3lWyf1RMGs/TEw==}
+
+  '@cropper/element-image@2.2.0':
+    resolution: {integrity: sha512-J0zBFMEfW6yuAmXoP6S+ZdNJy5J2duVsUS0N2o3D/HxHiVo4Vm3jrSexasu/Vfvwe4Lv0nmZ/10KW3RxhrvDCQ==}
+
+  '@cropper/element-selection@2.2.0':
+    resolution: {integrity: sha512-ATtWeEb1J/scQ98ins2jy4YbVOqz13F54jDk4Mm7OCpG0fzDseOujSLoIP8y26gtY7XGQXvn8WiFBbIZbeSgxQ==}
+
+  '@cropper/element-shade@2.2.0':
+    resolution: {integrity: sha512-fiurnjecablA8+17GoOjiNrzKWe85Q6h9JLbPJkxKCQxcxqpjEsOdGu3YlRxaBYcYvr6wH9tghufOlUfYJS9nw==}
+
+  '@cropper/element-viewer@2.2.0':
+    resolution: {integrity: sha512-w6uO7m7PwBWKynMwj8DYkJHFXrHC6Xxvcp5Y+tSxhfcNtOvw92FDncqRLYv+xHQoCDXEvfCqJyrTx9nIiZgiLQ==}
+
+  '@cropper/element@2.2.0':
+    resolution: {integrity: sha512-Kckk7TiWt3Cf9MvSfmMx7ZOIuN1rzIUIwIPQSqSj0Sl6gj6opo+CPax+fREvyvVKEzAug7L0sQFZ0TL4H5LsNw==}
+
+  '@cropper/elements@2.2.0':
+    resolution: {integrity: sha512-OQiVvEjIQUbMAUGpFrI/L95elHNIXjdlSxxzeywbU6C93PdPypXeGQfOSLQ43zUYmFutWNb7jTrHvgb3JaE+VQ==}
+
+  '@cropper/utils@2.2.0':
+    resolution: {integrity: sha512-wTrpZl+F4Kr2hzovqjztSexWUU+EVK1CxPymbYgFYoAS/NZXwCDsrvikJQn+HYZVxjqyo/ClnFxA0fG+tFy6Hw==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -1052,6 +1094,9 @@ packages:
     resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
     engines: {node: '>=18'}
 
+  cropperjs@2.2.0:
+    resolution: {integrity: sha512-7egO+tXxt3jGHQcO6x4k1CVoMIlEu+4Klixc6ejspKOAns7onlC/lEi5tRi3qbuHVcATK7rqaZyp8LzynPz6Cg==}
+
   crossws@0.3.5:
     resolution: {integrity: sha512-ojKiDvcmByhwa8YYqbQI/hg7MEU0NC03+pSdEq4ZUnZR9xXpwk7E43SMNGkn+JxJGPFtNvQ48+vV2p+P1ml5PA==}
 
@@ -1205,6 +1250,9 @@ packages:
   github-slugger@2.0.0:
     resolution: {integrity: sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw==}
 
+  glur@2.0.0:
+    resolution: {integrity: sha512-ZgJCXwuaQo4vnYG+VqtNIYV9kpNC/V/mafp0UcOMiLN/7eQVjCU+RDBLIwWXlmvwYMLFDf0IJrV/4qnM5VinCA==}
+
   h3@1.15.11:
     resolution: {integrity: sha512-L3THSe2MPeBwgIZVSH5zLdBBU90TOxarvhK9d04IDY2AmVS8j2Jz2LIWtwsGOU3lu2I5jCN7FNvVfY2+XyF+mg==}
 
@@ -1293,6 +1341,9 @@ packages:
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
+
+  magic-wand-tool@1.1.7:
+    resolution: {integrity: sha512-S4rHzCs/bAp7nhQGKeg+McWuqrdyZKpnu8Ahd8AU7NzuLTm/Hh8tkpv1tW91Kmm59foIrXzip1d+P9NDoyxrZA==}
 
   magicast@0.5.5:
     resolution: {integrity: sha512-UicdXN8zQ3JHlxVq+28afMXPr1z7WNY6+7EJnzTdQWkTAlMLF5fNCCKxJHBQwGaNGR11581EiQmQzx73+MvszA==}
@@ -1443,6 +1494,9 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
+  multimath@3.0.0:
+    resolution: {integrity: sha512-U+s5xgbW55w5sbT9PeaJdEuxH5zL7wLwvp0MOJxXS8WhWDYnsTPIF3faeAltxkPNa+dDXmXs6gIiEpcCeE1YCA==}
+
   nanoid@3.3.19:
     resolution: {integrity: sha512-Y2tUNy4ouw6tq5oDSKeQYGOyhkUBhNOcGV/02KC+6kd9eDGqdZd++mjMiIDilrBYvjEnCYvVtsuHCuP+okSfug==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -1513,6 +1567,9 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
+
+  pica@10.0.3:
+    resolution: {integrity: sha512-dCeCJUOQs/aV7W5v2OLxUYq4gtGQ67C5QeLm253hAbBJj91iSivGaa/p2ApfTQqRtNhbCQU8+43T5jbyAOEInA==}
 
   piccolore@0.1.3:
     resolution: {integrity: sha512-o8bTeDWjE086iwKrROaDf31K0qC/BENdm15/uH9usSC/uZjJOKb2YGiVHfLY4GhwsERiPI1jmwI2XrA7ACOxVw==}
@@ -2008,6 +2065,72 @@ snapshots:
 
   '@cloudflare/workerd-windows-64@1.20261001.1':
     optional: true
+
+  '@cropper/element-canvas@2.2.0':
+    dependencies:
+      '@cropper/element': 2.2.0
+      '@cropper/utils': 2.2.0
+
+  '@cropper/element-crosshair@2.2.0':
+    dependencies:
+      '@cropper/element': 2.2.0
+      '@cropper/utils': 2.2.0
+
+  '@cropper/element-grid@2.2.0':
+    dependencies:
+      '@cropper/element': 2.2.0
+      '@cropper/utils': 2.2.0
+
+  '@cropper/element-handle@2.2.0':
+    dependencies:
+      '@cropper/element': 2.2.0
+      '@cropper/utils': 2.2.0
+
+  '@cropper/element-image@2.2.0':
+    dependencies:
+      '@cropper/element': 2.2.0
+      '@cropper/element-canvas': 2.2.0
+      '@cropper/utils': 2.2.0
+
+  '@cropper/element-selection@2.2.0':
+    dependencies:
+      '@cropper/element': 2.2.0
+      '@cropper/element-canvas': 2.2.0
+      '@cropper/element-image': 2.2.0
+      '@cropper/utils': 2.2.0
+
+  '@cropper/element-shade@2.2.0':
+    dependencies:
+      '@cropper/element': 2.2.0
+      '@cropper/element-canvas': 2.2.0
+      '@cropper/element-selection': 2.2.0
+      '@cropper/utils': 2.2.0
+
+  '@cropper/element-viewer@2.2.0':
+    dependencies:
+      '@cropper/element': 2.2.0
+      '@cropper/element-canvas': 2.2.0
+      '@cropper/element-image': 2.2.0
+      '@cropper/element-selection': 2.2.0
+      '@cropper/utils': 2.2.0
+
+  '@cropper/element@2.2.0':
+    dependencies:
+      '@cropper/utils': 2.2.0
+
+  '@cropper/elements@2.2.0':
+    dependencies:
+      '@cropper/element': 2.2.0
+      '@cropper/element-canvas': 2.2.0
+      '@cropper/element-crosshair': 2.2.0
+      '@cropper/element-grid': 2.2.0
+      '@cropper/element-handle': 2.2.0
+      '@cropper/element-image': 2.2.0
+      '@cropper/element-selection': 2.2.0
+      '@cropper/element-shade': 2.2.0
+      '@cropper/element-viewer': 2.2.0
+
+  '@cropper/utils@2.2.0': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -2689,6 +2812,11 @@ snapshots:
 
   cookie@1.1.1: {}
 
+  cropperjs@2.2.0:
+    dependencies:
+      '@cropper/elements': 2.2.0
+      '@cropper/utils': 2.2.0
+
   crossws@0.3.5:
     dependencies:
       uncrypto: 0.1.3
@@ -2870,6 +2998,8 @@ snapshots:
 
   github-slugger@2.0.0: {}
 
+  glur@2.0.0: {}
+
   h3@1.15.11:
     dependencies:
       cookie-es: 1.2.3
@@ -3006,6 +3136,8 @@ snapshots:
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
+
+  magic-wand-tool@1.1.7: {}
 
   magicast@0.5.5:
     dependencies:
@@ -3355,6 +3487,10 @@ snapshots:
 
   ms@2.1.3: {}
 
+  multimath@3.0.0:
+    dependencies:
+      glur: 2.0.0
+
   nanoid@3.3.19: {}
 
   neotraverse@0.6.18: {}
@@ -3422,6 +3558,11 @@ snapshots:
   path-to-regexp@6.3.0: {}
 
   pathe@2.0.3: {}
+
+  pica@10.0.3:
+    dependencies:
+      glur: 2.0.0
+      multimath: 3.0.0
 
   piccolore@0.1.3: {}
 

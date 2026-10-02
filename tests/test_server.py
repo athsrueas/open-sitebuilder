@@ -136,7 +136,8 @@ class LocalApiTests(unittest.TestCase):
         self.assertEqual((server.DATA / 'originals' / (asset['id'] + '.png')).read_bytes(), original)
         with Image.open(server.DATA / 'media' / (asset['id'] + '.webp')) as img:
             self.assertEqual(img.size, (2400, 1600))
-            self.assertGreater(min(img.getpixel((0, 0))), 250)
+            self.assertEqual(img.mode, 'RGBA')
+            self.assertEqual(img.getpixel((0, 0))[3], 0)
         with Image.open(server.DATA / 'media' / (asset['id'] + '-full.webp')) as img:
             self.assertEqual(img.size, (3000, 2000))
         p = server.load_project()
@@ -146,6 +147,27 @@ class LocalApiTests(unittest.TestCase):
         stored = server.load_project()
         self.assertEqual(stored['name'], 'Test artist')
         self.assertEqual(stored['assets'][0]['src'], asset['src'])
+
+    def test_edited_image_versions_preserve_alpha_and_source(self):
+        source = io.BytesIO()
+        Image.new('RGB', (40, 30), 'red').save(source, format='JPEG')
+        original = json.load(self.request('/api/upload', source.getvalue(), headers={'X-File-Name': 'source.jpg'}))
+        edited = io.BytesIO()
+        Image.new('RGBA', (20, 15), (20, 50, 80, 64)).save(edited, format='PNG')
+        asset = json.load(self.request('/api/upload', edited.getvalue(), headers={'X-File-Name': 'source-edited.png', 'X-Source-Asset': original['id']}))
+        self.assertNotEqual(original['id'], asset['id'])
+        self.assertEqual(asset['parentId'], original['id'])
+        self.assertEqual(len(server.load_project()['assets']), 2)
+        with Image.open(server.DATA / 'media' / (asset['id'] + '-full.webp')) as image:
+            self.assertEqual(image.getpixel((0, 0)), (20, 50, 80, 64))
+        self.assertEqual(self.request('/api/original/' + original['id']).read(), source.getvalue())
+        with self.assertRaises(urllib.error.HTTPError): self.request('/api/original/../../.env')
+        p = server.load_project()
+        p['assets'][0]['archived'] = True
+        self.request('/api/project', p).close()
+        self.assertTrue(server.load_project()['assets'][0]['archived'])
+        with self.assertRaises(urllib.error.HTTPError):
+            self.request('/api/upload', edited.getvalue(), headers={'X-Source-Asset': 'f' * 32})
 
     def test_token_persists_in_env_but_is_not_returned_to_browser(self):
         value = {'accountId': 'a' * 32, 'projectName': 'test-portfolio', 'token': 'secret-test-token'}
