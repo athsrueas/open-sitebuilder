@@ -18,7 +18,8 @@ The shortcut starts the server in the background. To stop it, click **Settings â
 
 - Set the artist name and description in Settings.
 - Create pages in the Pages tab. The first page is the homepage; move a page earlier to change that order. Other pages have editable URL slugs.
-- Add introductions, text, images, galleries, horizontally scrolling carousels, sketchbooks, and dividers. Drag blocks to reorder or insert them. Blocks can be duplicated and deleted.
+- Add introductions, text, images, galleries, horizontally scrolling carousels, sketchbooks, and dividers. Click a tile under **Add a block**, or drag it into the live preview and drop at the green insertion line. Drag existing blocks by their dotted handles to reorder them in the list or preview. Blocks can be duplicated and deleted.
+- Select a block in the list to bring it into view, or click it in the preview to edit its settings. Text and theme changes appear immediately. Unchanged sketchbooks keep their current page while you edit surrounding text. The refresh button reloads the preview if needed.
 - Import JPEG, PNG, or WebP artwork from Images, then assign it to a block. Galleries and carousels follow image selection order. Re-select images to change that order.
 - Customize every sketchbook page with an image, title, caption, paper color, crop setting, and hard/soft page type. Reorder pages with the arrow buttons. StPageFlip handles mouse/touch turning and portrait layout.
 - Choose colors and toggle typography, spacing, page width, and image corners in Theme. Check desktop and mobile previews.

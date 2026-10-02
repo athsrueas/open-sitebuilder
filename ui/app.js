@@ -2,7 +2,7 @@ import { escapeHtml as esc } from '/shared/render.js';
 const $ = s => document.querySelector(s);
 const id = () => crypto.randomUUID().replaceAll('-','');
 const types = {hero:['◒','Introduction'],image:['▧','Image'],gallery:['▦','Gallery'],carousel:['↔','Carousel'],text:['T','Text'],sketchbook:['▤','Sketchbook'],divider:['―','Divider']};
-let project, pageId, blockId, tab='pages', saveTimer, cleanupTimer, saveQueue=Promise.resolve(), revision=0, previewReady=false;
+let project, pageId, blockId, tab='pages', saveTimer, cleanupTimer, saveQueue=Promise.resolve(), revision=0;
 const page = () => project.pages.find(p=>p.id===pageId);
 const block = () => page().blocks.find(b=>b.id===blockId);
 async function api(path, value, extra={}) {
@@ -12,8 +12,8 @@ async function api(path, value, extra={}) {
   return data;
 }
 function toast(message){ $('#toast').textContent=message;$('#toast').style.display='block';clearTimeout(cleanupTimer);cleanupTimer=setTimeout(()=>$('#toast').style.display='none',5000); }
-function preview(){if(previewReady) $('#preview').contentWindow.postMessage({type:'render',project,pageId},location.origin);$('#page-label').textContent=page().title;}
-function changed(repaint=false){revision++;$('#save-status').textContent='Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>save().catch(e=>toast(e.message)),650);if(repaint)render();preview();}
+function preview(focus=false){if(!project)return;$('#preview').contentWindow.postMessage({type:'render',project,pageId,blockId,focus},location.origin);$('#page-label').textContent=page().title;}
+function changed(repaint=false,focus=false){revision++;$('#save-status').textContent='Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>save().catch(e=>toast(e.message)),650);if(repaint)render();preview(focus);}
 function save(){
   clearTimeout(saveTimer);const snapshot=structuredClone(project), version=revision;
   saveQueue=saveQueue.catch(()=>{}).then(async()=>{ $('#save-status').textContent='Saving…';try{await api('project',snapshot);if(revision===version)$('#save-status').textContent='All changes saved';}catch(e){$('#save-status').textContent='Save failed';throw e;} });return saveQueue;
@@ -23,7 +23,7 @@ function render(){renderLeft();renderInspector();$('#artist-name').textContent=p
 function renderLeft(){
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   if(tab==='pages'){
-    $('#left-content').innerHTML=`${project.pages.map((p,i)=>`<div class="page-item ${p.id===pageId?'active':''}"><button data-select-page="${p.id}">▱ &nbsp; ${esc(p.title)} ${i===0?'<small>HOME</small>':''}</button></div>`).join('')}<button id="add-page" class="wide-button">+ New page</button><label>Page title<input id="page-title" value="${esc(page().title)}"></label><label>Page URL<input id="page-slug" value="${esc(page().slug)}"></label><p class="small-note">The first page is your homepage.</p><div class="settings-row"><button id="page-up" ${project.pages.indexOf(page())===0?'disabled':''}>Move earlier</button><button id="remove-page" class="danger" ${project.pages.length===1?'disabled':''}>Delete page</button></div><div class="section-title">ON THIS PAGE <span>${page().blocks.length} BLOCKS</span></div><div id="block-list">${page().blocks.map(b=>`<div draggable="true" data-block-id="${b.id}" class="block-item ${b.id===blockId?'selected':''}"><span class="drag-grip">⠿</span><span class="block-symbol">${types[b.type][0]}</span><span class="block-title">${esc(b.title || types[b.type][1])}<small>${types[b.type][1]}</small></span><button class="icon-button" data-block-up="${b.id}" aria-label="Move block earlier">↑</button><button class="icon-button" data-block-down="${b.id}" aria-label="Move block later">↓</button></div>`).join('')}</div><div class="section-title">ADD A BLOCK</div><div class="palette">${Object.entries(types).map(([type,[icon,name]])=>`<button draggable="true" data-add="${type}"><span>${icon}</span>${name}</button>`).join('')}</div><p class="small-note">Drag blocks to reorder them, or drag a new block into the list.</p>`;
+    $('#left-content').innerHTML=`${project.pages.map((p,i)=>`<div class="page-item ${p.id===pageId?'active':''}"><button data-select-page="${p.id}">▱ &nbsp; ${esc(p.title)} ${i===0?'<small>HOME</small>':''}</button></div>`).join('')}<button id="add-page" class="wide-button">+ New page</button><label>Page title<input id="page-title" value="${esc(page().title)}"></label><label>Page URL<input id="page-slug" value="${esc(page().slug)}"></label><p class="small-note">The first page is your homepage.</p><div class="settings-row"><button id="page-up" ${project.pages.indexOf(page())===0?'disabled':''}>Move earlier</button><button id="remove-page" class="danger" ${project.pages.length===1?'disabled':''}>Delete page</button></div><div class="section-title">ON THIS PAGE <span>${page().blocks.length} BLOCKS</span></div><div id="block-list">${page().blocks.map(b=>`<div draggable="true" data-block-id="${b.id}" class="block-item ${b.id===blockId?'selected':''}"><span class="drag-grip">⠿</span><span class="block-symbol">${types[b.type][0]}</span><span class="block-title">${esc(b.title || types[b.type][1])}<small>${types[b.type][1]}</small></span><button class="icon-button" data-block-up="${b.id}" aria-label="Move block earlier">↑</button><button class="icon-button" data-block-down="${b.id}" aria-label="Move block later">↓</button></div>`).join('')}</div><div class="section-title">ADD A BLOCK</div><div class="palette">${Object.entries(types).map(([type,[icon,name]])=>`<button draggable="true" data-add="${type}"><span>${icon}</span>${name}</button>`).join('')}</div><p class="small-note">Drag a block by its dotted handle to reorder it. Drag a tile below onto the live preview to add it there.</p>`;
     document.querySelectorAll('[data-select-page]').forEach(b=>b.onclick=()=>{pageId=b.dataset.selectPage;blockId=page().blocks[0]?.id;render();preview();});
     $('#add-page').onclick=()=>{const n=project.pages.length+1;const p={id:id(),title:'New page '+n,slug:'page-'+id().slice(0,8),blocks:[makeBlock('hero')]};project.pages.push(p);pageId=p.id;blockId=p.blocks[0].id;changed(true);};
     $('#page-title').oninput=e=>{page().title=e.target.value;changed();};
@@ -31,10 +31,10 @@ function renderLeft(){
     $('#page-slug').onchange=e=>{const slug=e.target.value.trim();if(!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)||['media','_astro'].includes(slug)||project.pages.some(p=>p.id!==pageId&&p.slug===slug)){toast('Choose a unique URL using lowercase words and hyphens.');e.target.value=page().slug;return;}page().slug=slug;changed();};
     $('#page-up').onclick=()=>{const i=project.pages.indexOf(page());if(i>0){[project.pages[i-1],project.pages[i]]=[project.pages[i],project.pages[i-1]];changed(true);}};
     $('#remove-page').onclick=()=>{if(project.pages.length>1&&confirm('Delete this page and its blocks?')){project.pages=project.pages.filter(p=>p.id!==pageId);pageId=project.pages[0].id;blockId=page().blocks[0]?.id;changed(true);}};
-    document.querySelectorAll('[data-add]').forEach(b=>{b.onclick=()=>addBlock(b.dataset.add);b.ondragstart=e=>e.dataTransfer.setData('text/plain','new:'+b.dataset.add);});
+    document.querySelectorAll('[data-add]').forEach(b=>{b.onclick=()=>addBlock(b.dataset.add);b.ondragstart=e=>{e.dataTransfer.effectAllowed='copyMove';e.dataTransfer.setData('text/plain','new:'+b.dataset.add);};});
     document.querySelectorAll('[data-block-id]').forEach(el=>{
-      el.onclick=()=>{blockId=el.dataset.blockId;render();};
-      el.ondragstart=e=>e.dataTransfer.setData('text/plain','block:'+el.dataset.blockId);
+      el.onclick=()=>{blockId=el.dataset.blockId;render();preview(true);};
+      el.ondragstart=e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','block:'+el.dataset.blockId);};
       el.ondragover=e=>{e.preventDefault();el.classList.add('drop-target');};el.ondragleave=()=>el.classList.remove('drop-target');
       el.ondrop=e=>{e.preventDefault();e.stopPropagation();dropBlock(e.dataTransfer.getData('text/plain'),page().blocks.findIndex(b=>b.id===el.dataset.blockId));};
     });
@@ -51,8 +51,8 @@ function renderLeft(){
     zone.ondragover=e=>{e.preventDefault();zone.classList.add('drop-target');};zone.ondragleave=()=>zone.classList.remove('drop-target');zone.ondrop=e=>{e.preventDefault();upload(e.dataTransfer.files);};
   }
 }
-function addBlock(type,index=page().blocks.length){const b=makeBlock(type);page().blocks.splice(index,0,b);blockId=b.id;changed(true);}
-function dropBlock(value,target){if(value.startsWith('new:')&&types[value.slice(4)])return addBlock(value.slice(4),target);if(value.startsWith('block:')){const from=page().blocks.findIndex(b=>b.id===value.slice(6));if(from<0)return;const [b]=page().blocks.splice(from,1);page().blocks.splice(target>from?target-1:target,0,b);changed(true);}}
+function addBlock(type,index=page().blocks.length){const b=makeBlock(type);page().blocks.splice(index,0,b);blockId=b.id;changed(true,true);}
+function dropBlock(value,target){if(value.startsWith('new:')&&types[value.slice(4)])return addBlock(value.slice(4),target);if(value.startsWith('block:')){const from=page().blocks.findIndex(b=>b.id===value.slice(6));if(from<0)return;const [b]=page().blocks.splice(from,1);page().blocks.splice(target>from?target-1:target,0,b);blockId=b.id;changed(true,true);}}
 function imageSelect(selected, attr){return `<select ${attr}><option value="">Choose artwork…</option>${project.assets.map(a=>`<option value="${a.id}" ${a.id===selected?'selected':''}>${esc(a.name)}</option>`).join('')}</select>`;}
 function renderInspector(){
   const b=block();if(!b){$('#inspector').innerHTML='<div class="empty-state">Select a block to shape it.<br>Every piece of your portfolio starts here.</div>';return;}
@@ -72,10 +72,11 @@ async function upload(files){
   render();toast('Image import finished. Select a block to use your artwork.');
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;renderLeft();});
-window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('#preview').contentWindow)return;if(e.data.type==='ready'){previewReady=true;if(project)preview();}if(e.data.type==='navigate'&&project.pages.some(p=>p.id===e.data.pageId)){pageId=e.data.pageId;blockId=page().blocks[0]?.id;render();preview();}});
+window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('#preview').contentWindow)return;if(e.data.type==='ready')preview();if(e.data.type==='preview-error')toast(e.data.message);if(e.data.type==='select-block'&&page().blocks.some(b=>b.id===e.data.blockId)){blockId=e.data.blockId;render();preview();}if(e.data.type==='drop-block'){const target=e.data.beforeId===null?page().blocks.length:page().blocks.findIndex(b=>b.id===e.data.beforeId);if(target>=0)dropBlock(String(e.data.value),target);}if(e.data.type==='navigate'&&project.pages.some(p=>p.id===e.data.pageId)){pageId=e.data.pageId;blockId=page().blocks[0]?.id;render();preview();}});
 $('#desktop').onclick=()=>{ $('#preview').classList.remove('mobile');$('#desktop').classList.add('active');$('#mobile').classList.remove('active');};
 $('#mobile').onclick=()=>{ $('#preview').classList.add('mobile');$('#mobile').classList.add('active');$('#desktop').classList.remove('active');};
-$('#refresh').onclick=()=>preview();
+$('#preview').addEventListener('load',()=>preview());
+$('#refresh').onclick=()=>{ $('#preview').src='/ui/preview.html?refresh='+Date.now(); };
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).close());
 $('#settings').onclick=async()=>{try{const c=await api('config'),form=$('#settings-form');for(const key of ['name','description'])form.elements[key].value=project[key];for(const key of ['accountId','projectName'])form.elements[key].value=c[key];form.elements.token.value='';form.elements.token.placeholder=c.hasToken?'Token is already set; leave blank to keep it':'Saved locally in .env';$('#settings-dialog').showModal();}catch(e){toast(e.message);}};
 $('#settings-form').onsubmit=async e=>{e.preventDefault();try{const fields=Object.fromEntries(new FormData(e.target));await api('config',fields);project.name=fields.name;project.description=fields.description;changed(true);await save();e.target.elements.token.value='';$('#settings-dialog').close();toast('Settings saved.');}catch(err){toast(err.message);}};

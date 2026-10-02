@@ -40,6 +40,7 @@ export function initPortfolio(root, PageFlip, navigate) {
   if(navigate) root.querySelectorAll('[data-page]').forEach(a=>a.onclick=e=>{e.preventDefault();navigate(a.dataset.page)});
   const books=[];
   root.querySelectorAll('[data-book]').forEach(el=>{
+    if (!PageFlip) return; // Static pages remain visible if the animation library is unavailable.
     const count=el.children.length;
     if(count<2){el.innerHTML='<div class="image-placeholder">Add at least two sketchbook pages</div>';return;}
     el.dataset.ready='true';
