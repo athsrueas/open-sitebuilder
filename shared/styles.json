@@ -1,0 +1,449 @@
+{
+  "fonts": {
+    "sans": {
+      "label": "Classic sans \u00b7 Arial",
+      "css": "Arial, Helvetica, sans-serif"
+    },
+    "humanist": {
+      "label": "Humanist sans \u00b7 Trebuchet",
+      "css": "\"Trebuchet MS\", Arial, sans-serif"
+    },
+    "verdana": {
+      "label": "Readable sans \u00b7 Verdana",
+      "css": "Verdana, Geneva, sans-serif"
+    },
+    "serif": {
+      "label": "Book serif \u00b7 Georgia",
+      "css": "Georgia, \"Times New Roman\", serif"
+    },
+    "classic": {
+      "label": "Classic serif \u00b7 Times",
+      "css": "\"Times New Roman\", Times, serif"
+    },
+    "mono": {
+      "label": "Monospace \u00b7 Courier",
+      "css": "\"Courier New\", Courier, monospace"
+    }
+  },
+  "fields": {
+    "background": {
+      "label": "Background",
+      "group": "Colors",
+      "type": "color",
+      "default": "#f5f1e9"
+    },
+    "ink": {
+      "label": "Text color",
+      "group": "Colors",
+      "type": "color",
+      "default": "#292d29"
+    },
+    "headingInk": {
+      "label": "Heading color",
+      "group": "Colors",
+      "type": "color",
+      "default": "#292d29"
+    },
+    "accent": {
+      "label": "Accent color",
+      "group": "Colors",
+      "type": "color",
+      "default": "#798269"
+    },
+    "bodyFont": {
+      "label": "Body font",
+      "group": "Typography",
+      "type": "select",
+      "default": "serif",
+      "options": [
+        "sans",
+        "humanist",
+        "verdana",
+        "serif",
+        "classic",
+        "mono"
+      ]
+    },
+    "headingFont": {
+      "label": "Heading font",
+      "group": "Typography",
+      "type": "select",
+      "default": "serif",
+      "options": [
+        "sans",
+        "humanist",
+        "verdana",
+        "serif",
+        "classic",
+        "mono"
+      ]
+    },
+    "bodySize": {
+      "label": "Body size (px)",
+      "group": "Typography",
+      "type": "number",
+      "default": 16,
+      "min": 10,
+      "max": 40,
+      "step": 1
+    },
+    "headingSize": {
+      "label": "Heading size (px)",
+      "group": "Typography",
+      "type": "number",
+      "default": 32,
+      "min": 16,
+      "max": 100,
+      "step": 1
+    },
+    "heroSize": {
+      "label": "Introduction size (px)",
+      "group": "Typography",
+      "type": "number",
+      "default": 82,
+      "min": 24,
+      "max": 160,
+      "step": 1
+    },
+    "captionSize": {
+      "label": "Caption size (px)",
+      "group": "Typography",
+      "type": "number",
+      "default": 12,
+      "min": 10,
+      "max": 28,
+      "step": 1
+    },
+    "lineHeight": {
+      "label": "Line spacing",
+      "group": "Typography",
+      "type": "number",
+      "default": 1.8,
+      "min": 1,
+      "max": 2.5,
+      "step": 0.05
+    },
+    "letterSpacing": {
+      "label": "Letter spacing (px)",
+      "group": "Typography",
+      "type": "number",
+      "default": 0,
+      "min": -2,
+      "max": 8,
+      "step": 0.1
+    },
+    "headingWeight": {
+      "label": "Heading weight",
+      "group": "Typography",
+      "type": "select",
+      "default": "400",
+      "options": [
+        "400",
+        "500",
+        "600",
+        "700"
+      ]
+    },
+    "align": {
+      "label": "Text alignment",
+      "group": "Layout",
+      "type": "select",
+      "default": "left",
+      "options": [
+        "left",
+        "center",
+        "right"
+      ]
+    },
+    "contentWidth": {
+      "label": "Page width (px)",
+      "group": "Layout",
+      "type": "number",
+      "default": 1000,
+      "min": 600,
+      "max": 1800,
+      "step": 1,
+      "siteOnly": true
+    },
+    "blockGap": {
+      "label": "Space after block (px)",
+      "group": "Layout",
+      "type": "number",
+      "default": 90,
+      "min": 0,
+      "max": 240,
+      "step": 1
+    },
+    "padding": {
+      "label": "Block padding (px)",
+      "group": "Layout",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "step": 1
+    },
+    "radius": {
+      "label": "Image corners (px)",
+      "group": "Layout",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 80,
+      "step": 1
+    },
+    "galleryColumns": {
+      "label": "Gallery columns",
+      "group": "Layout",
+      "type": "number",
+      "default": 2,
+      "min": 1,
+      "max": 4,
+      "step": 1
+    },
+    "imageHeight": {
+      "label": "Gallery image height (px)",
+      "group": "Layout",
+      "type": "number",
+      "default": 400,
+      "min": 160,
+      "max": 900,
+      "step": 1
+    },
+    "gridGap": {
+      "label": "Grid spacing (px)",
+      "group": "Layout",
+      "type": "number",
+      "default": 22,
+      "min": 0,
+      "max": 100,
+      "step": 1
+    }
+  },
+  "presets": [
+    {
+      "id": "gallery",
+      "name": "Gallery white",
+      "description": "White canvas, sans headings, generous artwork spacing.",
+      "references": [
+        {
+          "name": "White Cube",
+          "url": "https://www.whitecube.com/"
+        },
+        {
+          "name": "David Zwirner",
+          "url": "https://www.davidzwirner.com/"
+        }
+      ],
+      "values": {
+        "background": "#ffffff",
+        "ink": "#171717",
+        "headingInk": "#171717",
+        "accent": "#505050",
+        "bodyFont": "sans",
+        "headingFont": "sans",
+        "bodySize": 16,
+        "headingSize": 32,
+        "heroSize": 64,
+        "captionSize": 12,
+        "lineHeight": 1.6,
+        "letterSpacing": 0,
+        "headingWeight": "400",
+        "align": "left",
+        "contentWidth": 1280,
+        "blockGap": 88,
+        "padding": 0,
+        "radius": 0,
+        "galleryColumns": 2,
+        "imageHeight": 400,
+        "gridGap": 22
+      }
+    },
+    {
+      "id": "exhibition",
+      "name": "Exhibition",
+      "description": "Large headings and wide image frames for a small collection.",
+      "references": [
+        {
+          "name": "Hauser & Wirth",
+          "url": "https://www.hauserwirth.com/"
+        },
+        {
+          "name": "White Cube",
+          "url": "https://www.whitecube.com/"
+        }
+      ],
+      "values": {
+        "background": "#fafafa",
+        "ink": "#202020",
+        "headingInk": "#202020",
+        "accent": "#555555",
+        "bodyFont": "sans",
+        "headingFont": "sans",
+        "bodySize": 16,
+        "headingSize": 32,
+        "heroSize": 104,
+        "captionSize": 12,
+        "lineHeight": 1.8,
+        "letterSpacing": 0,
+        "headingWeight": "700",
+        "align": "left",
+        "contentWidth": 1440,
+        "blockGap": 90,
+        "padding": 0,
+        "radius": 0,
+        "galleryColumns": 1,
+        "imageHeight": 640,
+        "gridGap": 32
+      }
+    },
+    {
+      "id": "archive",
+      "name": "Studio archive",
+      "description": "Compact type and a three-column artwork index.",
+      "references": [
+        {
+          "name": "Studio Olafur Eliasson",
+          "url": "https://olafureliasson.net/"
+        }
+      ],
+      "values": {
+        "background": "#ffffff",
+        "ink": "#202020",
+        "headingInk": "#202020",
+        "accent": "#515151",
+        "bodyFont": "humanist",
+        "headingFont": "serif",
+        "bodySize": 14,
+        "headingSize": 26,
+        "heroSize": 48,
+        "captionSize": 12,
+        "lineHeight": 1.8,
+        "letterSpacing": 0.4,
+        "headingWeight": "400",
+        "align": "left",
+        "contentWidth": 1200,
+        "blockGap": 48,
+        "padding": 0,
+        "radius": 0,
+        "galleryColumns": 3,
+        "imageHeight": 280,
+        "gridGap": 22
+      }
+    },
+    {
+      "id": "editorial",
+      "name": "Editorial",
+      "description": "Serif titles with sans body text for essays and artwork notes.",
+      "references": [
+        {
+          "name": "Hauser & Wirth",
+          "url": "https://www.hauserwirth.com/"
+        },
+        {
+          "name": "Studio Olafur Eliasson",
+          "url": "https://olafureliasson.net/"
+        }
+      ],
+      "values": {
+        "background": "#f4f0e8",
+        "ink": "#302d28",
+        "headingInk": "#302d28",
+        "accent": "#73533e",
+        "bodyFont": "sans",
+        "headingFont": "serif",
+        "bodySize": 17,
+        "headingSize": 40,
+        "heroSize": 76,
+        "captionSize": 12,
+        "lineHeight": 1.75,
+        "letterSpacing": 0,
+        "headingWeight": "400",
+        "align": "left",
+        "contentWidth": 1080,
+        "blockGap": 90,
+        "padding": 0,
+        "radius": 0,
+        "galleryColumns": 2,
+        "imageHeight": 400,
+        "gridGap": 22
+      }
+    },
+    {
+      "id": "dark",
+      "name": "Dark viewing room",
+      "description": "Dark variation of the image-led exhibition layout.",
+      "references": [
+        {
+          "name": "White Cube",
+          "url": "https://www.whitecube.com/"
+        },
+        {
+          "name": "Hauser & Wirth",
+          "url": "https://www.hauserwirth.com/"
+        }
+      ],
+      "values": {
+        "background": "#171819",
+        "ink": "#e8e7e3",
+        "headingInk": "#ffffff",
+        "accent": "#c8b99c",
+        "bodyFont": "sans",
+        "headingFont": "sans",
+        "bodySize": 16,
+        "headingSize": 32,
+        "heroSize": 72,
+        "captionSize": 12,
+        "lineHeight": 1.8,
+        "letterSpacing": 0,
+        "headingWeight": "400",
+        "align": "left",
+        "contentWidth": 1360,
+        "blockGap": 90,
+        "padding": 0,
+        "radius": 0,
+        "galleryColumns": 2,
+        "imageHeight": 560,
+        "gridGap": 32
+      }
+    },
+    {
+      "id": "catalogue",
+      "name": "Print catalogue",
+      "description": "A restrained serif variation for prints, captions, and sketchbooks.",
+      "references": [
+        {
+          "name": "David Zwirner",
+          "url": "https://www.davidzwirner.com/"
+        },
+        {
+          "name": "Studio Olafur Eliasson",
+          "url": "https://olafureliasson.net/"
+        }
+      ],
+      "values": {
+        "background": "#fffdf8",
+        "ink": "#252525",
+        "headingInk": "#252525",
+        "accent": "#455b74",
+        "bodyFont": "serif",
+        "headingFont": "classic",
+        "bodySize": 18,
+        "headingSize": 36,
+        "heroSize": 68,
+        "captionSize": 12,
+        "lineHeight": 1.7,
+        "letterSpacing": 0,
+        "headingWeight": "400",
+        "align": "left",
+        "contentWidth": 1000,
+        "blockGap": 64,
+        "padding": 0,
+        "radius": 0,
+        "galleryColumns": 2,
+        "imageHeight": 400,
+        "gridGap": 22
+      }
+    }
+  ]
+}

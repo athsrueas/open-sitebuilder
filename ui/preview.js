@@ -1,3 +1,5 @@
+import {styleVars} from '/shared/styles.js';
+import {styleControls,wireStyleControls} from '/ui/style-controls.js';
 import { BLOCKS, IMAGE_TYPES, SINGLE_IMAGE_TYPES } from '/shared/blocks.js';
 import { blockLibraryMarkup, wireBlockSearch } from '/ui/block-library.js';
 import { escapeHtml as esc } from '/shared/render.js';
@@ -25,7 +27,7 @@ editorStyle.textContent += `
   [contenteditable]:empty::after{content:attr(data-placeholder);opacity:.45}
   .canvas-tools{position:sticky;top:0;z-index:10000;background:#fcfdfb;border-bottom:1px solid #dce2d2;padding:10px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:12px Arial,sans-serif;color:#354d37}
   .canvas-library{position:relative}.canvas-library summary{cursor:pointer;padding:8px;border:1px solid #c8d2be;border-radius:5px}.canvas-library>.block-library{position:absolute;right:0;top:35px;width:320px;max-height:65vh;overflow:auto;background:#fcfdfb;padding:15px;box-shadow:0 10px 30px #0002}.block-group{border-top:1px solid #dce2d2;padding:12px 0}.block-group summary{cursor:pointer}.block-group small{float:right}.palette{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.palette button{min-height:55px;text-align:left}.palette button span{display:block;margin-bottom:6px}.block-search{width:100%;padding:8px;border:1px solid #c8d2be;margin-bottom:12px}button[hidden],details[hidden],p[hidden]{display:none}
-  .canvas-options,.item-options{display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#f7f9f2;padding:12px;margin-top:15px;border:1px solid #dce2d2}.canvas-options label,.item-options label{display:flex;flex-direction:column;gap:6px}.canvas-options input,.item-options input{padding:8px;border:1px solid #c8d2be;background:white;color:#354d37;min-width:180px}.canvas-options input[type=checkbox]{min-width:0}.add-item{margin-top:15px;padding:8px;cursor:pointer}.link-edit-label{display:inline!important}.link-list [data-item-index]>a{display:none}.folio-spacer{border:1px dashed #79826944}
+  .canvas-options,.item-options{display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#f7f9f2;padding:12px;margin-top:15px;border:1px solid #dce2d2}.canvas-options label,.item-options label{display:flex;flex-direction:column;gap:6px}.canvas-options input,.item-options input,.canvas-styles input,.canvas-styles select{padding:8px;border:1px solid #c8d2be;background:white;color:#354d37;min-width:180px}.canvas-options input[type=checkbox]{min-width:0}.add-item{margin-top:15px;padding:8px;cursor:pointer}.link-edit-label{display:inline!important}.link-list [data-item-index]>a{display:none}.folio-spacer{border:1px dashed #79826944}
   .canvas-tools span{margin-right:auto;color:#798269;font-size:11px}
   .editor-chrome{font:11px Arial,sans-serif;color:#354d37;letter-spacing:0;text-transform:none}
   .editor-chrome button,.canvas-tools button{font:11px Arial,sans-serif;color:#354d37;background:#fcfdfb;border:1px solid #c8d2be;padding:7px 9px;border-radius:5px;cursor:pointer}
@@ -39,6 +41,7 @@ editorStyle.textContent += `
   .book-page [contenteditable]{position:relative;z-index:5}
   .book-page>.page-photo{position:absolute;top:7px;right:7px;z-index:6}
 `;
+editorStyle.textContent += `.canvas-styles{position:relative}.canvas-styles>summary{cursor:pointer;padding:7px 9px}.canvas-style-fields{position:absolute;top:32px;left:0;width:275px;max-height:55vh;overflow:auto;background:#fcfdfb;color:#354d37;border:1px solid #c8d2be;box-shadow:0 8px 24px #0002;padding:14px;text-align:left;z-index:100}.canvas-style-fields p{font:12px Arial,sans-serif!important}.canvas-style-fields .style-group{border-top:1px solid #dce2d2;padding-top:10px;margin-top:10px}.canvas-style-fields summary{padding:7px 0;cursor:pointer}.style-field{margin:12px 0}.style-field label{display:block;margin-bottom:5px}.style-field select,.style-field input:not([type=checkbox]){width:100%;padding:7px;border:1px solid #c8d2be;background:white;color:#354d37}.style-field input[type=color]{height:34px}.style-field input:disabled,.style-field select:disabled{opacity:.5}.style-override{display:flex!important;align-items:center;gap:6px}.canvas-style-fields input[type=checkbox]{width:auto;min-width:0;margin:0;flex:0 0 auto}.canvas-style-fields input,.canvas-style-fields select{min-width:0;box-sizing:border-box}.canvas-style-fields{max-width:calc(100vw - 100px)}@media(max-width:600px){.block-tools{flex-wrap:wrap;max-width:100%}.canvas-style-fields{position:fixed;top:24%;left:5%;width:90%;max-width:90%;max-height:65vh}}`;
 document.head.append(editorStyle);
 const tools=document.createElement('div');
 tools.className='canvas-tools';
@@ -57,8 +60,9 @@ document.body.append(marker);
 const send = data => parent.postMessage(data, location.origin);
 
 function render(data) {
-  if(root.contains(document.activeElement)&&(document.activeElement.isContentEditable||document.activeElement.matches('.canvas-options input,.item-options input'))){pendingRender=data;return;}
+  if(root.contains(document.activeElement)&&(document.activeElement.isContentEditable||document.activeElement.matches('.canvas-options input,.item-options input,.canvas-styles input,.canvas-styles select'))){pendingRender=data;return;}
   pendingRender=null;
+  const openStyles=[...root.querySelectorAll('.canvas-styles[open]')].map(el=>({id:el.closest('[data-block]').dataset.block,groups:[...el.querySelectorAll('.style-group[open]')].map(g=>g.dataset.styleGroup)}));
   const scroll = window.scrollY;
   const markup = portfolioMarkup(data.project, data.pageId);
   const container = document.createElement('div');
@@ -66,7 +70,7 @@ function render(data) {
   const page = data.project.pages.find(p => p.id === data.pageId);
   const next = new Map();
   for (const b of page.blocks) {
-    const signature = JSON.stringify({block:b, assets:data.project.assets});
+    const signature = JSON.stringify({block:b, assets:data.project.assets, theme:data.project.theme});
     const old = sections.get(b.id);
     const fresh = container.querySelector(`[data-block="${b.id}"]`);
     if (old?.signature === signature) {
@@ -83,7 +87,8 @@ function render(data) {
   const style = document.createElement('style');
   style.textContent = markup.css;
   root.replaceChildren(style, container);
-  decorate(container, page);
+  decorate(container, page, data.project.theme);
+  for(const {id,groups} of openStyles){const el=container.querySelector(`[data-block="${id}"] .canvas-styles`);if(el){el.open=true;el.querySelectorAll(".style-group").forEach(g=>g.open=groups.includes(g.dataset.styleGroup));}}
   for (const item of next.values()) {
     if (!item.cleanup) item.cleanup = initPortfolio(item.node, window.St?.PageFlip);
   }
@@ -146,7 +151,7 @@ document.addEventListener('drop',e=>{
 document.addEventListener('dragleave',e=>{if(!e.relatedTarget)clearDrop();});
 document.addEventListener('dragend',clearDrop);
 
-function decorate(container,page){
+function decorate(container,page,theme){
   container.querySelectorAll('[data-project-edit]').forEach(el=>{el.contentEditable='true';el.setAttribute('role','textbox');el.setAttribute('aria-label',el.dataset.projectEdit==='name'?'Artist name on page':'Portfolio description on page');});
   for(const b of page.blocks){
     const section=container.querySelector(`[data-block="${b.id}"]`);
@@ -159,6 +164,15 @@ function decorate(container,page){
       const photo=document.createElement('button');photo.textContent=SINGLE_IMAGE_TYPES.includes(b.type)?'Replace photo':'Add photos';photo.onclick=()=>choosePhotos({blockId:b.id});toolbar.append(photo);
       const fit=document.createElement('button');fit.textContent=b.fit==='cover'?'Show whole photo':'Crop to fill';fit.onclick=()=>send({type:'block-action',blockId:b.id,action:'fit'});toolbar.append(fit);
     }
+    const styles=document.createElement('details');styles.className='editor-chrome canvas-styles';
+    styles.innerHTML=`<summary>Styles</summary><div class="canvas-style-fields"><p>Check a setting to override the site default.</p>${styleControls(theme,b.styles||{},esc)}<button data-reset-styles>Reset block styles</button></div>`;
+    wireStyleControls(styles,theme,b.styles||{},(key,value)=>{
+      if(value===null){if(b.styles)delete b.styles[key];}else (b.styles??={})[key]=value;
+      section.setAttribute('style',styleVars(b.styles,true));
+      send({type:'block-style',blockId:b.id,key,value});
+    });
+    styles.querySelector('[data-reset-styles]').onclick=()=>send({type:'reset-block-styles',blockId:b.id});
+    toolbar.append(styles);
     section.prepend(toolbar);
     section.querySelectorAll('.folio-accordion details').forEach(item=>item.open=true);
     const fields=BLOCKS[b.type]?.fields||[];
@@ -201,7 +215,7 @@ root.addEventListener('focusin',e=>{
 function sendText(el){if(el.dataset.projectEdit){send({type:'project-inline-edit',field:el.dataset.projectEdit,value:el.innerText});return;}send({type:'inline-edit',blockId:el.closest('[data-block]').dataset.block,spreadId:el.closest('[data-spread-id]')?.dataset.spreadId,itemIndex:el.closest('[data-item-index]')?Number(el.closest('[data-item-index]').dataset.itemIndex):undefined,field:el.dataset.cell?'cell:'+el.dataset.cell:el.dataset.edit,value:el.innerText.replace(/\r/g,'')});}
 root.addEventListener('input',e=>{if(e.target.matches('[contenteditable]'))sendText(e.target);});
 root.addEventListener('focusout',e=>{
-  if(e.target.matches('.canvas-options input,.item-options input')){send({type:'edit-end'});return;}
+  if(e.target.matches('.canvas-options input,.item-options input,.canvas-styles input,.canvas-styles select')){send({type:'edit-end'});return;}
   if(!e.target.matches('[contenteditable]'))return;
   queueMicrotask(()=>{if(pendingRender)render(pendingRender);send({type:'edit-end'});});
 });
@@ -213,7 +227,7 @@ root.addEventListener('keydown',e=>{
 root.addEventListener('paste',e=>{if(e.target.matches('[contenteditable]')){e.preventDefault();document.execCommand('insertText',false,e.clipboardData.getData('text/plain'));}});
 // Keep sketchbook page-turn gestures from taking over editable captions and controls.
 for(const name of ['pointerdown','mousedown','touchstart'])root.addEventListener(name,e=>{if(e.target.closest('.book-page')&&e.target.closest('[contenteditable],.editor-chrome'))e.stopPropagation();},true);
-root.addEventListener('click',e=>{if(e.target.closest('[contenteditable],.editor-chrome')||e.target.closest('a')?.querySelector('img'))e.preventDefault();},true);
+root.addEventListener('click',e=>{if(e.target.closest('a')&&(e.target.closest('[contenteditable],.editor-chrome')||e.target.closest('a').querySelector('img')))e.preventDefault();},true);
 function addResize(section,b){
   const frame=section.querySelector('.single-image');
   const controls=document.createElement('div');controls.className='editor-chrome image-size';

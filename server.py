@@ -27,6 +27,7 @@ JOB_LOCK = threading.Lock()
 JOB = {'state': 'idle', 'message': ''}
 SLUG = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
 COLOR = re.compile(r'^#[0-9a-fA-F]{6}$')
+STYLES = json.loads((ROOT / 'shared/styles.json').read_text(encoding='utf-8'))
 BLOCKS = json.loads((ROOT / 'shared/blocks.json').read_text(encoding='utf-8'))
 
 def cloudflare_settings():
@@ -80,6 +81,23 @@ def valid_url(value, media=False):
     return parsed.scheme == 'https' and bool(parsed.netloc)
 
 
+def validate_styles(values, block=False):
+    if not isinstance(values, dict): raise ValueError('Invalid styles.')
+    for key, value in values.items():
+        field = STYLES['fields'].get(key)
+        if not field:
+            if not block: continue
+            raise ValueError('Unknown block style.')
+        if block and field.get('siteOnly'): raise ValueError('Invalid block style.')
+        if field['type'] == 'color':
+            valid = isinstance(value, str) and bool(COLOR.fullmatch(value))
+        elif field['type'] == 'select':
+            valid = isinstance(value, str) and value in field['options']
+        else:
+            valid = type(value) in (int, float) and field['min'] <= value <= field['max']
+        if not valid: raise ValueError('Invalid style value: ' + key)
+
+
 def validate_project(p):
     if not isinstance(p, dict) or p.get('version') != 1:
         raise ValueError('Unsupported project format.')
@@ -93,6 +111,7 @@ def validate_project(p):
     for key in ('serif', 'wide', 'spacious', 'rounded'):
         if not isinstance(theme.get(key), bool):
             raise ValueError('Invalid theme option.')
+    validate_styles(theme)
     pages = p.get('pages')
     if not isinstance(pages, list) or not 1 <= len(pages) <= 50:
         raise ValueError('A project needs between 1 and 50 pages.')
@@ -115,6 +134,7 @@ def validate_project(p):
         if not isinstance(page.get('blocks'), list) or len(page['blocks']) > 200:
             raise ValueError('Too many blocks.')
         for block in page['blocks']:
+            validate_styles(block.get('styles', {}), block=True)
             check_id(block.get('id'))
             if block.get('type') not in BLOCKS:
                 raise ValueError('Unknown block type.')

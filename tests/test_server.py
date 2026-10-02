@@ -13,6 +13,18 @@ import server
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_theme_and_block_style_validation(self):
+        p = server.default_project()
+        for preset in server.STYLES['presets']:
+            p['theme'].update(preset['values'])
+            server.validate_project(p)
+        b = p['pages'][0]['blocks'][0]
+        b['styles'] = {'bodySize': 24, 'headingFont': 'mono', 'background': '#ffffff'}
+        server.validate_project(p)
+        for invalid in ({'bodySize': float('nan')}, {'bodyFont': 'evil'}, {'ink': 'red'}, {'contentWidth': 900}):
+            b['styles'] = invalid
+            with self.assertRaises(ValueError): server.validate_project(p)
+
     def test_registered_blocks_and_link_validation(self):
         p = server.default_project()
         p['pages'][0]['blocks'] = []
