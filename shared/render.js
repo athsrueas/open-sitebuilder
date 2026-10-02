@@ -1,3 +1,4 @@
+import { extraBlockMarkup, extraBlockCss } from './extra-blocks.js';
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeColor = v => /^#[0-9a-f]{6}$/i.test(v) ? v : '#f3eee5';
 const image = (id, project, fit='contain') => {
@@ -7,7 +8,7 @@ const image = (id, project, fit='contain') => {
 export function portfolioMarkup(project, pageId) {
   const page = project.pages.find(p => p.id === pageId) || project.pages[0];
   const t = project.theme;
-  const css = `
+  const css = extraBlockCss + `
     *{box-sizing:border-box}body{margin:0;background:${safeColor(t.background)};color:${safeColor(t.ink)};font-family:${t.serif ? 'Georgia,serif':'Arial,sans-serif'}}
     a{color:inherit}header{max-width:1200px;margin:auto;padding:32px 5%;display:flex;justify-content:space-between;gap:24px;align-items:center}header strong{font-size:22px}nav{display:flex;gap:22px;flex-wrap:wrap}nav a{text-decoration:none;font:12px Arial,sans-serif;text-transform:uppercase;letter-spacing:1.4px}nav a.active{border-bottom:2px solid ${safeColor(t.accent)};padding-bottom:6px}
     main{max-width:${t.wide ? '1280':'1000'}px;margin:auto;padding:20px 5% 80px}.folio-block{margin:0 0 ${t.spacious ? '90':'40'}px}h1{font-size:clamp(36px,7vw,82px);font-weight:400;line-height:1.05;max-width:900px;margin:20px 0}h2{font-size:32px;font-weight:400}p{line-height:1.8;white-space:pre-wrap;max-width:700px}.eyebrow{font:11px Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:${safeColor(t.accent)}}
@@ -16,7 +17,7 @@ export function portfolioMarkup(project, pageId) {
   `;
   const html = `<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map((p,i) => `<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${i===0?'/':'/'+p.slug+'/'}">${escapeHtml(p.title)}</a>`).join('')}</nav></header><main>${page.blocks.map(b => {
     const heading = `<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div><h2 data-edit="title">${escapeHtml(b.title)}</h2>`;
-    let content = '';
+    let content = extraBlockMarkup(b,project,{esc:escapeHtml,image});
     if(b.type==='hero') content=`<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div><h1 data-edit="title">${escapeHtml(b.title)}</h1><p data-edit="text">${escapeHtml(b.text)}</p>`;
     if(b.type==='text') content=heading+`<p data-edit="text">${escapeHtml(b.text)}</p>`;
     if(b.type==='image') content=`<div class="single-image" style="width:${Math.min(100,Math.max(20,Number(b.width)||100))}%;${b.height ? "height:"+Math.min(1200,Math.max(120,Number(b.height)||500))+"px;" : ""}margin-inline:auto">${image(b.images[0],project,b.fit)}</div><div class="caption" data-edit="text">${escapeHtml(b.text)}</div>`;

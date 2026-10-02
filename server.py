@@ -27,6 +27,7 @@ JOB_LOCK = threading.Lock()
 JOB = {'state': 'idle', 'message': ''}
 SLUG = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
 COLOR = re.compile(r'^#[0-9a-fA-F]{6}$')
+BLOCKS = json.loads((ROOT / 'shared/blocks.json').read_text(encoding='utf-8'))
 
 def cloudflare_settings():
     """Read fresh values so editing .env does not require an app restart."""
@@ -71,6 +72,14 @@ def atomic_json(path, value):
 def load_project():
     return json.loads((DATA / 'project.json').read_text(encoding='utf-8'))
 
+def valid_url(value, media=False):
+    if not isinstance(value, str): return False
+    if any(c.isspace() for c in value) or '\\' in value: return False
+    if not media and value.startswith('/') and not value.startswith('//'): return True
+    parsed = urllib.parse.urlparse(value)
+    return parsed.scheme == 'https' and bool(parsed.netloc)
+
+
 def validate_project(p):
     if not isinstance(p, dict) or p.get('version') != 1:
         raise ValueError('Unsupported project format.')
@@ -107,15 +116,33 @@ def validate_project(p):
             raise ValueError('Too many blocks.')
         for block in page['blocks']:
             check_id(block.get('id'))
-            if block.get('type') not in ('hero', 'text', 'image', 'gallery', 'carousel', 'sketchbook', 'divider'):
+            if block.get('type') not in BLOCKS:
                 raise ValueError('Unknown block type.')
             check_text(block, ('title', 'label', 'text'))
+            for field in BLOCKS[block['type']]['fields']:
+                key = field['key']
+                value = block.get(key, BLOCKS[block['type']]['defaults'].get(key))
+                if field['type'] == 'checkbox':
+                    if not isinstance(value, bool): raise ValueError('Invalid block option.')
+                elif field['type'] == 'number':
+                    low, high = (2, 4) if key == 'columns' else (0, 600)
+                    if type(value) is not int or not low <= value <= high: raise ValueError('Invalid block size.')
+                elif not isinstance(value, str) or len(value) > 20000:
+                    raise ValueError('Invalid block option.')
+                if key == 'url' and value and not valid_url(value, block['type'] in ('video', 'audio')):
+                    raise ValueError('Use an HTTPS URL or a relative page link.')
+            if 'items' in block:
+                if not isinstance(block['items'], list) or len(block['items']) > 100: raise ValueError('Too many block items.')
+                for item in block['items']:
+                    if not isinstance(item, dict): raise ValueError('Invalid block item.')
+                    check_text(item, ('title', 'text', 'url'))
+                    if item['url'] and not valid_url(item['url']): raise ValueError('Invalid item link.')
             if block.get('fit') not in ('contain', 'cover'):
                 raise ValueError('Invalid image fit.')
             for key, low, high in (('width', 20, 100), ('height', 120, 1200)):
                 if key in block and (type(block[key]) not in (int, float) or not low <= block[key] <= high):
                     raise ValueError('Invalid image size.')
-            if not isinstance(block.get('images'), list) or any(i not in assets for i in block['images']):
+            if not isinstance(block.get('images'), list) or any(i not in assets and not (block['type']=='cards' and i=='') for i in block['images']):
                 raise ValueError('Unknown image.')
             if not isinstance(block.get('spreads'), list) or len(block['spreads']) > 200:
                 raise ValueError('Too many sketchbook pages.')
@@ -187,7 +214,7 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
     def reply(self, status, body, mime='application/json'):
-        if mime == 'application/json':
+        if mime == 'application/json' and not isinstance(body, (bytes, bytearray)):
             body = json.dumps(body).encode()
         elif isinstance(body, str):
             body = body.encode()

@@ -1,3 +1,6 @@
+import { BLOCKS, IMAGE_TYPES, SINGLE_IMAGE_TYPES } from '/shared/blocks.js';
+import { blockLibraryMarkup, wireBlockSearch } from '/ui/block-library.js';
+import { escapeHtml as esc } from '/shared/render.js';
 import { portfolioMarkup, initPortfolio } from '/shared/render.js';
 
 // Keep unchanged sketchbooks mounted while editing surrounding text.
@@ -21,6 +24,8 @@ editorStyle.textContent += `
   [contenteditable]:focus{outline:2px solid #798269;outline-offset:5px}
   [contenteditable]:empty::after{content:attr(data-placeholder);opacity:.45}
   .canvas-tools{position:sticky;top:0;z-index:10000;background:#fcfdfb;border-bottom:1px solid #dce2d2;padding:10px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:12px Arial,sans-serif;color:#354d37}
+  .canvas-library{position:relative}.canvas-library summary{cursor:pointer;padding:8px;border:1px solid #c8d2be;border-radius:5px}.canvas-library>.block-library{position:absolute;right:0;top:35px;width:320px;max-height:65vh;overflow:auto;background:#fcfdfb;padding:15px;box-shadow:0 10px 30px #0002}.block-group{border-top:1px solid #dce2d2;padding:12px 0}.block-group summary{cursor:pointer}.block-group small{float:right}.palette{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.palette button{min-height:55px;text-align:left}.palette button span{display:block;margin-bottom:6px}.block-search{width:100%;padding:8px;border:1px solid #c8d2be;margin-bottom:12px}button[hidden],details[hidden],p[hidden]{display:none}
+  .canvas-options,.item-options{display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#f7f9f2;padding:12px;margin-top:15px;border:1px solid #dce2d2}.canvas-options label,.item-options label{display:flex;flex-direction:column;gap:6px}.canvas-options input,.item-options input{padding:8px;border:1px solid #c8d2be;background:white;color:#354d37;min-width:180px}.canvas-options input[type=checkbox]{min-width:0}.add-item{margin-top:15px;padding:8px;cursor:pointer}.link-edit-label{display:inline!important}.link-list [data-item-index]>a{display:none}.folio-spacer{border:1px dashed #79826944}
   .canvas-tools span{margin-right:auto;color:#798269;font-size:11px}
   .editor-chrome{font:11px Arial,sans-serif;color:#354d37;letter-spacing:0;text-transform:none}
   .editor-chrome button,.canvas-tools button{font:11px Arial,sans-serif;color:#354d37;background:#fcfdfb;border:1px solid #c8d2be;padding:7px 9px;border-radius:5px;cursor:pointer}
@@ -38,9 +43,11 @@ document.head.append(editorStyle);
 const tools=document.createElement('div');
 tools.className='canvas-tools';
 tools.innerHTML='<span>Click text to write · Drop photos anywhere</span><button data-create="text">+ Text</button><button data-create="image">+ Image</button><button data-create="gallery">+ Gallery</button><button data-create="sketchbook">+ Sketchbook</button><button data-photos>Add photos</button>';
+const library=document.createElement('details');library.className='canvas-library';library.innerHTML='<summary>All blocks</summary>'+blockLibraryMarkup(esc,'data-create');tools.append(library);wireBlockSearch(library);
+library.querySelectorAll('[data-create]').forEach(button=>button.ondragstart=e=>{e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain','new:'+button.dataset.create);});
 document.body.prepend(tools);
 const picker=document.createElement('input');picker.type='file';picker.multiple=true;picker.accept='image/jpeg,image/png,image/webp';picker.hidden=true;document.body.append(picker);
-tools.addEventListener('click',e=>{if(e.target.dataset.create)send({type:'add-block',blockType:e.target.dataset.create});if(e.target.hasAttribute('data-photos'))choosePhotos({});});
+tools.addEventListener('click',e=>{const create=e.target.closest('[data-create]');if(create){send({type:'add-block',blockType:create.dataset.create});library.open=false;}if(e.target.hasAttribute('data-photos'))choosePhotos({});});
 function choosePhotos(target){uploadTarget=target;picker.click();}
 picker.onchange=()=>{send({type:'drop-artwork',...uploadTarget,files:[...picker.files],beforeId:null});picker.value='';};
 
@@ -50,7 +57,7 @@ document.body.append(marker);
 const send = data => parent.postMessage(data, location.origin);
 
 function render(data) {
-  if(root.contains(document.activeElement)&&document.activeElement.isContentEditable){pendingRender=data;return;}
+  if(root.contains(document.activeElement)&&(document.activeElement.isContentEditable||document.activeElement.matches('.canvas-options input,.item-options input'))){pendingRender=data;return;}
   pendingRender=null;
   const scroll = window.scrollY;
   const markup = portfolioMarkup(data.project, data.pageId);
@@ -115,13 +122,13 @@ function clearDrop(){marker.style.display='none';root.querySelectorAll('.image-d
 function dropDestination(e){
   const section=e.target.closest('[data-block]');
   const spread=e.target.closest('[data-spread-id]');
-  return {blockId:section?.dataset.block,spreadId:spread?.dataset.spreadId,beforeId:insertionPoint(e.clientY)?.dataset.block??null};
+  return {blockId:section?.dataset.block,spreadId:spread?.dataset.spreadId,itemIndex:e.target.closest('[data-item-index]')?Number(e.target.closest('[data-item-index]').dataset.itemIndex):undefined,beforeId:insertionPoint(e.clientY)?.dataset.block??null};
 }
 document.addEventListener('dragover', e => {
   if(![...e.dataTransfer.types].some(t=>t==='text/plain'||t==='Files'))return;
   e.preventDefault();clearDrop();
   const section=e.target.closest('[data-block]');
-  if([...e.dataTransfer.types].includes('Files')&&section?.querySelector('.single-image,.gallery,.carousel,.book')){
+  if([...e.dataTransfer.types].includes('Files')&&section?.querySelector('.single-image,.gallery,.carousel,.book,.paired-image,.cover-image,.artwork-cards')){
     (e.target.closest('[data-spread-id]')||section).classList.add('image-drop');return;
   }
   const next=insertionPoint(e.clientY), main=root.querySelector('main');
@@ -148,14 +155,34 @@ function decorate(container,page){
     toolbar.innerHTML='<button class="grip" draggable="true" aria-label="Drag block">⠿</button><button data-action="up" aria-label="Move block up">↑</button><button data-action="down" aria-label="Move block down">↓</button><button data-action="duplicate">Duplicate</button>';
     toolbar.querySelector('.grip').ondragstart=e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','block:'+b.id);};
     toolbar.onclick=e=>{if(e.target.dataset.action)send({type:'block-action',blockId:b.id,action:e.target.dataset.action});};
-    if(['image','gallery','carousel'].includes(b.type)){
-      const photo=document.createElement('button');photo.textContent=b.type==='image'?'Replace photo':'Add photos';photo.onclick=()=>choosePhotos({blockId:b.id});toolbar.append(photo);
+    if(IMAGE_TYPES.includes(b.type)){
+      const photo=document.createElement('button');photo.textContent=SINGLE_IMAGE_TYPES.includes(b.type)?'Replace photo':'Add photos';photo.onclick=()=>choosePhotos({blockId:b.id});toolbar.append(photo);
       const fit=document.createElement('button');fit.textContent=b.fit==='cover'?'Show whole photo':'Crop to fill';fit.onclick=()=>send({type:'block-action',blockId:b.id,action:'fit'});toolbar.append(fit);
     }
     section.prepend(toolbar);
+    section.querySelectorAll('.folio-accordion details').forEach(item=>item.open=true);
+    const fields=BLOCKS[b.type]?.fields||[];
+    if(fields.length){
+      const settings=document.createElement('div');settings.className='editor-chrome canvas-options';
+      settings.innerHTML=fields.map(f=>`<label>${esc(f.label)}<input data-option="${f.key}" type="${f.type}" ${f.type==='checkbox'?(b[f.key]?'checked':''):`value="${esc(b[f.key]??'')}"`}></label>`).join('');
+      settings.querySelectorAll('[data-option]').forEach(input=>{const update=inline=>send({type:'set-option',blockId:b.id,key:input.dataset.option,value:input.type==='checkbox'?input.checked:input.value,inline});input.oninput=()=>update(true);input.onchange=()=>update(false);});
+      section.append(settings);
+    }
+    if(Array.isArray(b.items)){
+      section.querySelectorAll('[data-item-index]').forEach(item=>{
+        const i=Number(item.dataset.itemIndex),controls=document.createElement('div');controls.className='editor-chrome item-options';
+        if(['cards','links','social'].includes(b.type)){
+          controls.innerHTML=`<label>Link URL<input type="text" aria-label="Item link URL" value="${esc(b.items[i].url)}" placeholder="https://… or /page/"></label>`;
+          const urlInput=controls.querySelector('input');const update=inline=>send({type:'item-link',blockId:b.id,index:i,value:urlInput.value,inline});urlInput.oninput=()=>update(true);urlInput.onchange=()=>update(false);
+        }
+        if(b.type==='cards'){const photo=document.createElement('button');photo.textContent='Add / replace photo';photo.onclick=()=>choosePhotos({blockId:b.id,itemIndex:i});controls.append(photo);}
+        const remove=document.createElement('button');remove.textContent='Remove item';remove.onclick=()=>send({type:'item-action',blockId:b.id,action:'remove',index:i});controls.append(remove);item.append(controls);
+      });
+      const add=document.createElement('button');add.className='editor-chrome add-item';add.textContent='+ Add item';add.onclick=()=>send({type:'item-action',blockId:b.id,action:'add'});section.append(add);
+    }
     section.querySelectorAll('[data-edit]').forEach(el=>{
-      el.contentEditable='true';el.setAttribute('role','textbox');el.setAttribute('aria-label',`${el.dataset.edit==='text'?'Text':el.dataset.edit==='caption'?'Caption':el.dataset.edit==='label'?'Small heading':'Title'} on page`);
-      el.dataset.placeholder=el.dataset.edit==='label'?'Add a small heading…':el.dataset.edit==='text'||el.dataset.edit==='caption'?'Write here…':'Add a title…';
+      el.contentEditable='true';el.setAttribute('role','textbox');el.setAttribute('aria-label',`${el.dataset.cell?'Table cell '+el.dataset.cell:el.dataset.edit==='attribution'?'Attribution':el.dataset.edit==='text'?'Text':el.dataset.edit==='caption'?'Caption':el.dataset.edit==='label'?'Small heading':'Title'} on page`);
+      el.dataset.placeholder=el.dataset.edit==='label'?'Add a small heading…':el.dataset.edit==='attribution'?'Add an attribution…':el.dataset.edit==='text'||el.dataset.edit==='caption'?'Write here…':'Add a title…';
       el.spellcheck=true;
     });
     section.querySelectorAll('[data-spread-id]').forEach(el=>{
@@ -171,11 +198,11 @@ root.addEventListener('focusin',e=>{
   selectedBlockId=e.target.closest('[data-block]')?.dataset.block;
   root.querySelectorAll('[data-block]').forEach(el=>el.classList.toggle('is-selected',el.dataset.block===selectedBlockId));
 });
-function sendText(el){if(el.dataset.projectEdit){send({type:'project-inline-edit',field:el.dataset.projectEdit,value:el.innerText});return;}send({type:'inline-edit',blockId:el.closest('[data-block]').dataset.block,spreadId:el.closest('[data-spread-id]')?.dataset.spreadId,field:el.dataset.edit,value:el.innerText.replace(/\r/g,'')});}
+function sendText(el){if(el.dataset.projectEdit){send({type:'project-inline-edit',field:el.dataset.projectEdit,value:el.innerText});return;}send({type:'inline-edit',blockId:el.closest('[data-block]').dataset.block,spreadId:el.closest('[data-spread-id]')?.dataset.spreadId,itemIndex:el.closest('[data-item-index]')?Number(el.closest('[data-item-index]').dataset.itemIndex):undefined,field:el.dataset.cell?'cell:'+el.dataset.cell:el.dataset.edit,value:el.innerText.replace(/\r/g,'')});}
 root.addEventListener('input',e=>{if(e.target.matches('[contenteditable]'))sendText(e.target);});
 root.addEventListener('focusout',e=>{
+  if(e.target.matches('.canvas-options input,.item-options input')){send({type:'edit-end'});return;}
   if(!e.target.matches('[contenteditable]'))return;
-  sendText(e.target);
   queueMicrotask(()=>{if(pendingRender)render(pendingRender);send({type:'edit-end'});});
 });
 root.addEventListener('keydown',e=>{

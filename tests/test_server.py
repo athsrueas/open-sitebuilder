@@ -13,6 +13,25 @@ import server
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_registered_blocks_and_link_validation(self):
+        p = server.default_project()
+        p['pages'][0]['blocks'] = []
+        for kind, definition in server.BLOCKS.items():
+            b = dict(id=server.identifier(), type=kind, title=definition['name'], label='', text='', images=[], spreads=[], fit='contain')
+            b.update(copy.deepcopy(definition['defaults']))
+            p['pages'][0]['blocks'].append(b)
+        server.validate_project(p)
+        link = next(b for b in p['pages'][0]['blocks'] if b['type'] == 'button')
+        link['url'] = 'javascript:alert(1)'
+        with self.assertRaisesRegex(ValueError, 'HTTPS'):
+            server.validate_project(p)
+        link['url'] = '/about/'
+        server.validate_project(p)
+        card = next(b for b in p['pages'][0]['blocks'] if b['type'] == 'cards')
+        card['items'][0]['url'] = 'data:text/html,test'
+        with self.assertRaisesRegex(ValueError, 'link'):
+            server.validate_project(p)
+
     def test_image_size_is_bounded(self):
         p = server.default_project()
         b = p['pages'][0]['blocks'][0]
@@ -82,6 +101,12 @@ class LocalApiTests(unittest.TestCase):
             req_headers['X-Folio-Token'] = server.TOKEN
         req = urllib.request.Request(self.url + path, data=payload, headers=req_headers)
         return urllib.request.urlopen(req)
+
+    def test_block_catalogue_is_served_as_json(self):
+        with self.request('/shared/blocks.json') as response:
+            self.assertEqual(response.headers['Content-Type'], 'application/json')
+            catalogue = json.load(response)
+        self.assertEqual(set(catalogue), set(server.BLOCKS))
 
     def test_write_requires_session_and_read_rejects_foreign_host(self):
         with self.assertRaises(urllib.error.HTTPError) as error:

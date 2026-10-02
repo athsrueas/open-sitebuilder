@@ -1,0 +1,340 @@
+{
+  "hero": {
+    "name": "Introduction",
+    "group": "Text",
+    "icon": "◒",
+    "description": "Page introduction with a heading and text",
+    "defaults": {},
+    "fields": []
+  },
+  "text": {
+    "name": "Text",
+    "group": "Text",
+    "icon": "T",
+    "description": "Heading and paragraphs",
+    "defaults": {},
+    "fields": []
+  },
+  "heading": {
+    "name": "Heading",
+    "group": "Text",
+    "icon": "H",
+    "description": "Standalone section heading",
+    "defaults": {},
+    "fields": []
+  },
+  "quote": {
+    "name": "Quote",
+    "group": "Text",
+    "icon": "“",
+    "description": "Quotation with an attribution",
+    "defaults": {
+      "attribution": ""
+    },
+    "fields": [
+      {
+        "key": "attribution",
+        "label": "Attribution",
+        "type": "text"
+      }
+    ]
+  },
+  "list": {
+    "name": "List",
+    "group": "Text",
+    "icon": "☷",
+    "description": "Bulleted or numbered list",
+    "defaults": {
+      "ordered": false
+    },
+    "fields": [
+      {
+        "key": "ordered",
+        "label": "Numbered list",
+        "type": "checkbox"
+      }
+    ]
+  },
+  "table": {
+    "name": "Table",
+    "group": "Text",
+    "icon": "▦",
+    "description": "Table with editable cells",
+    "defaults": {
+      "text": "Column 1 | Column 2\nValue 1 | Value 2"
+    },
+    "fields": []
+  },
+  "accordion": {
+    "name": "Accordion / FAQ",
+    "group": "Text",
+    "icon": "⌄",
+    "description": "Expandable questions and answers",
+    "defaults": {
+      "items": [
+        {
+          "title": "Question",
+          "text": "Answer",
+          "url": ""
+        }
+      ]
+    },
+    "fields": []
+  },
+  "code": {
+    "name": "Code / preformatted",
+    "group": "Text",
+    "icon": "{}",
+    "description": "Preserve spacing and display code as text",
+    "defaults": {},
+    "fields": []
+  },
+  "image": {
+    "name": "Image",
+    "group": "Artwork",
+    "icon": "▧",
+    "description": "Single image with caption",
+    "defaults": {},
+    "fields": []
+  },
+  "gallery": {
+    "name": "Gallery",
+    "group": "Artwork",
+    "icon": "▦",
+    "description": "Grid of artwork",
+    "defaults": {},
+    "fields": []
+  },
+  "carousel": {
+    "name": "Carousel",
+    "group": "Artwork",
+    "icon": "↔",
+    "description": "Horizontally scrolling images",
+    "defaults": {},
+    "fields": []
+  },
+  "sketchbook": {
+    "name": "Sketchbook",
+    "group": "Artwork",
+    "icon": "▤",
+    "description": "Page-flipping sketchbook",
+    "defaults": {},
+    "fields": []
+  },
+  "imageText": {
+    "name": "Image + text",
+    "group": "Artwork",
+    "icon": "▣",
+    "description": "Image beside editable text",
+    "defaults": {
+      "reverse": false
+    },
+    "fields": [
+      {
+        "key": "reverse",
+        "label": "Image on the right",
+        "type": "checkbox"
+      }
+    ]
+  },
+  "cover": {
+    "name": "Cover image",
+    "group": "Artwork",
+    "icon": "▰",
+    "description": "Image with overlaid heading and text",
+    "defaults": {},
+    "fields": []
+  },
+  "cards": {
+    "name": "Artwork cards",
+    "group": "Artwork",
+    "icon": "▥",
+    "description": "Images with titles, descriptions, and links",
+    "defaults": {
+      "items": [
+        {
+          "title": "Artwork",
+          "text": "",
+          "url": ""
+        }
+      ]
+    },
+    "fields": []
+  },
+  "video": {
+    "name": "Video",
+    "group": "Media",
+    "icon": "▷",
+    "description": "YouTube, Vimeo, or a direct HTTPS video URL",
+    "defaults": {
+      "url": ""
+    },
+    "fields": [
+      {
+        "key": "url",
+        "label": "Video URL (YouTube, Vimeo, MP4, WebM)",
+        "type": "url"
+      }
+    ]
+  },
+  "audio": {
+    "name": "Audio",
+    "group": "Media",
+    "icon": "♫",
+    "description": "Audio player for a direct HTTPS audio file",
+    "defaults": {
+      "url": ""
+    },
+    "fields": [
+      {
+        "key": "url",
+        "label": "Audio file URL (MP3, OGG, WAV)",
+        "type": "url"
+      }
+    ]
+  },
+  "button": {
+    "name": "Button",
+    "group": "Links & contact",
+    "icon": "↗",
+    "description": "Link to a page or external website",
+    "defaults": {
+      "url": "",
+      "buttonText": "Open link"
+    },
+    "fields": [
+      {
+        "key": "buttonText",
+        "label": "Button label",
+        "type": "text"
+      },
+      {
+        "key": "url",
+        "label": "Link URL or /page/",
+        "type": "url"
+      }
+    ]
+  },
+  "links": {
+    "name": "Links",
+    "group": "Links & contact",
+    "icon": "≡",
+    "description": "List of named links",
+    "defaults": {
+      "items": [
+        {
+          "title": "Link",
+          "text": "",
+          "url": ""
+        }
+      ]
+    },
+    "fields": []
+  },
+  "social": {
+    "name": "Social links",
+    "group": "Links & contact",
+    "icon": "◎",
+    "description": "Links to social profiles",
+    "defaults": {
+      "items": [
+        {
+          "title": "Instagram",
+          "text": "",
+          "url": ""
+        }
+      ]
+    },
+    "fields": []
+  },
+  "download": {
+    "name": "File link",
+    "group": "Links & contact",
+    "icon": "↓",
+    "description": "Link to a hosted PDF, CV, or other file",
+    "defaults": {
+      "url": "",
+      "buttonText": "Open file"
+    },
+    "fields": [
+      {
+        "key": "buttonText",
+        "label": "Link label",
+        "type": "text"
+      },
+      {
+        "key": "url",
+        "label": "Hosted file URL",
+        "type": "url"
+      }
+    ]
+  },
+  "contact": {
+    "name": "Contact",
+    "group": "Links & contact",
+    "icon": "@",
+    "description": "Contact text and an email link",
+    "defaults": {
+      "email": ""
+    },
+    "fields": [
+      {
+        "key": "email",
+        "label": "Email address",
+        "type": "email"
+      }
+    ]
+  },
+  "columns": {
+    "name": "Text columns",
+    "group": "Layout",
+    "icon": "Ⅱ",
+    "description": "Two to four columns of text",
+    "defaults": {
+      "columns": 2,
+      "items": [
+        {
+          "title": "Column 1",
+          "text": "",
+          "url": ""
+        },
+        {
+          "title": "Column 2",
+          "text": "",
+          "url": ""
+        }
+      ]
+    },
+    "fields": [
+      {
+        "key": "columns",
+        "label": "Columns (2–4)",
+        "type": "number"
+      }
+    ]
+  },
+  "divider": {
+    "name": "Divider",
+    "group": "Layout",
+    "icon": "―",
+    "description": "Horizontal separator",
+    "defaults": {},
+    "fields": []
+  },
+  "spacer": {
+    "name": "Spacer",
+    "group": "Layout",
+    "icon": "↕",
+    "description": "Adjustable vertical space",
+    "defaults": {
+      "space": 80
+    },
+    "fields": [
+      {
+        "key": "space",
+        "label": "Space in pixels (0–600)",
+        "type": "number"
+      }
+    ]
+  }
+}

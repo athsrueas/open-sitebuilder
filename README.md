@@ -23,6 +23,23 @@ The shortcut starts the server in the background. To stop it, click **Settings â
 - Edit directly on the page: click headings, body text, image captions, sketchbook titles/captions, the artist name, or the footer description. Text saves automatically; Escape restores the text from when you started editing. Pasted text stays plain text.
 - Drop JPEG, PNG, or WebP files onto the canvas to create an image or gallery. Drop onto an existing image to replace it, a gallery/carousel to append photos, or a sketchbook page to replace that page's artwork. You can also drag existing artwork from **Images**, or use **Add photos** and the controls on each block.
 - Resize a single image with its bottom-right corner handle, or the width/height sliders beneath it. Use **Crop to fill / Show whole photo** to change how it fits. Sizes are saved and included in the exported site. Move or duplicate blocks with their canvas controls, or drag the dotted handle to a green insertion line. **Details** opens the optional settings panel.
+- Browse **Add a block** in the sidebar or **All blocks** on the canvas. Both have search and collapsible categories; click a block or drag it onto the page. Search also matches descriptions.
+
+The library contains 25 blocks:
+
+| Group | Blocks |
+| --- | --- |
+| Text | Introduction, Text, Heading, Quote, List, Table, Accordion / FAQ, Code / preformatted |
+| Artwork | Image, Gallery, Carousel, Sketchbook, Image + text, Cover image, Artwork cards |
+| Media | Video, Audio |
+| Links & contact | Button, Links, Social links, File link, Contact |
+| Layout | Text columns, Divider, Spacer |
+
+Table cells and item titles/text can be edited on the canvas. Lists use one item per line; tables use one row per line with `|` between cells. FAQ answers stay open while editing and collapse on the exported site. Link URLs, list numbering, attribution, column counts, and spacer height have controls on the canvas and in Details. Text columns support two to four columns and stack on small screens; they contain text items rather than nested arbitrary blocks.
+
+Videos accept YouTube/Vimeo URLs or direct hosted video URLs; audio and file links use hosted HTTPS URLs. Contact blocks provide an email link. Photo uploads remain JPEG, PNG, or WebP; media uploads and contact submission processing are not included.
+
+The catalogue is based on the standard types documented by [WordPress](https://wordpress.org/documentation/article/blocks-list/) and [Squarespace](https://support.squarespace.com/hc/en-us/articles/206543757-Add-content-to-your-site-with-blocks), with a searchable category layout like [Webflow's Add panel](https://help.webflow.com/hc/en-us/articles/33961270096659-The-Add-panel). Type definitions and default fields live in `shared/blocks.json`, which the editor, renderer, and server validation share.
 - Import JPEG, PNG, or WebP artwork from Images, then assign it to a block. Galleries and carousels follow image selection order. Re-select images to change that order.
 - Customize every sketchbook page with an image, title, caption, paper color, crop setting, and hard/soft page type. Reorder pages with the arrow buttons. StPageFlip handles mouse/touch turning and portrait layout.
 - Choose colors and toggle typography, spacing, page width, and image corners in Theme. Check desktop and mobile previews.
