@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-03",
+      "title": "Removable artwork text areas",
+      "description": "Remove individual headings and descriptions from mixed artwork blocks with canvas controls, remove all block or card text, and restore preserved wording. Omit removed text wrappers and margins from previews and published HTML, retain card image destinations, collapse image-and-text columns, and remove text-free cover overlays. Validate saved visibility settings and restore checkbox changes immediately.",
+      "commit": "21b541f0b42c0be4c0a4bac98edd6a3e2ad4cf6a"
+    },
+    {
+      "date": "2026-10-03",
       "title": "Internal destinations and hidden navigation pages",
       "description": "Explain link click behavior, give artwork card images and buttons the same destination, and add page-then-block destination selectors in the canvas and Details. Track destinations across page URL changes and reordering, flag deleted targets, show full page address examples, and optionally hide pages from the site menu while retaining their routes and link destinations. Resolve links to static HTML during Astro builds.",
       "commit": "dd08e08a66d7a6dd0becf89a32b0e3a629710d8d"
