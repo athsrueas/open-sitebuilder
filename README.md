@@ -127,6 +127,7 @@ Open **About** in the editor toolbar for these same credits and feature history.
 
 ### Feature history
 
+- **Layered free layout and separate mobile canvas** — Arrange overlapping text and image layers directly on a prominent free canvas, resize and reorder layers, configure independent mobile positions, and automatically stack incomplete phone layouts. <sub>2026-10-02 · [ef86d23](https://github.com/athsrueas/mirandasite/commit/ef86d23307dab80fc5b3f685f3ae6b5c4b6e4b9e)</sub>
 - **Media deletion and File Explorer** — Delete an image and its placements with local file recovery in the Windows Recycle Bin, or open File Explorer with the original upload selected. Other edited versions are preserved. <sub>2026-10-02 · [d46ad5c](https://github.com/athsrueas/mirandasite/commit/d46ad5cf67254bb65c16b4077996c8a907bf9361)</sub>
 - **Visible block deletion and undo** — Delete blocks directly from the canvas toolbar or Pages list, and restore up to 20 recent deletions during the editor session. <sub>2026-10-02 · [018d43d](https://github.com/athsrueas/mirandasite/commit/018d43dadb0a0767c12a9e167282c2b71a59a1bf)</sub>
 - **Animated coming-soon splash** — Editable full-screen landing layout with procedural watercolor paper, slow light and ink blooms, plus a reusable coming-soon portfolio example. <sub>2026-10-02 · [06fe1f8](https://github.com/athsrueas/mirandasite/commit/06fe1f8d16858ace665a3d6fee38828582b7a1aa)</sub>

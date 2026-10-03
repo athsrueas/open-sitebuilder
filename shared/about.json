@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Layered free layout and separate mobile canvas",
+      "description": "Arrange overlapping text and image layers directly on a prominent free canvas, resize and reorder layers, configure independent mobile positions, and automatically stack incomplete phone layouts.",
+      "commit": "ef86d23307dab80fc5b3f685f3ae6b5c4b6e4b9e"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Media deletion and File Explorer",
       "description": "Delete an image and its placements with local file recovery in the Windows Recycle Bin, or open File Explorer with the original upload selected. Other edited versions are preserved.",
       "commit": "d46ad5cf67254bb65c16b4077996c8a907bf9361"
