@@ -18,7 +18,7 @@ Skip this section if you already have a Pages project.
 3. Choose a project name such as `artist-portfolio`. Record this exact name; it is the name you will enter in Folio Studio.
 4. Upload the `examples/cloudflare-placeholder` folder supplied with this application. It contains an `index.html` file at its root, so the upload screen has something to deploy.
 5. Click **Deploy** and open the resulting `pages.dev` link. This placeholder is public immediately.
-6. Check that the project's production branch is `main`; Folio Studio deploys to `main`.
+6. Folio Studio always uploads with branch `main`. Confirm the project uses `main` as its production branch. Direct Upload projects do not expose production-branch controls in the dashboard; if it differs, an advanced user must update the project through Cloudflare’s API as explained in [production branch configuration](https://developers.cloudflare.com/pages/get-started/direct-upload/#production-branch-configuration). Folio Studio does not change this setting itself. A different production branch can cause the upload to remain a preview deployment instead of updating your public production site.
 
 Folio Studio builds on your computer and uploads the result. You do not need to connect the application's GitHub repository to Pages. A Direct Upload project cannot later be converted to Git integration; that requires a new project. See [Cloudflare Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/).
 
@@ -54,7 +54,7 @@ The required permission is documented in [Cloudflare's Pages upload guide](https
 
 ### Optional API access for DNS administration
 
-The editor currently publishes to an existing project; configure custom domains in the Cloudflare dashboard using section 6. This does **not** require adding DNS rights to the app's token.
+Folio Studio contains no DNS administration controls or automatic DNS setup. The editor publishes to an existing project; configure custom domains in the Cloudflare dashboard using section 6. This does **not** require adding DNS rights to the app's token.
 
 If you separately authorize API-based DNS setup or diagnosis, add **Zone → DNS → Edit** and **Zone → Zone → Read**, with **Zone Resources → Include → Specific zone → your exact domain**. Keep Account Pages Edit scoped as above. Do not grant access to all zones.
 
@@ -66,10 +66,10 @@ If you separately authorize API-based DNS setup or diagnosis, add **Zone → DNS
 2. Click **Settings** and enter **Account ID**, **Pages project name**, and **API token**.
 3. Click **Save settings**. On Windows, settings are encrypted with the current user's Windows DPAPI and saved in `data/credentials.dat`. You do not need an `.env` file.
 4. If you already have a legacy `.env`, saving imports its Cloudflare values and removes those three entries only after encrypted storage is verified. Leave the token field blank to retain an existing token.
-5. Edit your pages, click **Build site**, and check the local desktop and mobile previews.
-6. Click **Publish**, wait for success, then open the deployment link and check the actual public site.
+5. Edit your pages and use **Desktop / Mobile** above the editor canvas. Click **Build site**, then **Open your site ↗** in the completion dialog to inspect the actual generated site in a separate tab. Resize that tab or use browser device tools to test narrow layouts; the built site has no editor device toggles.
+6. Click **Publish**. This saves your changes and builds again before uploading. Wait for success, then open the deployment link and check the production `pages.dev` address and any custom domain as well. A successful preview deployment alone does not prove the production branch is configured correctly.
 
-**Publishing makes the site's content public** and updates the configured production project. Check that you selected the correct account and project. Published artwork includes web images and full-size web copies; keep private images out of your pages. Original uploads and saved credentials are not included in the site export.
+**Publishing makes the site's content public** and updates the configured production project. Check that you selected the correct account and project. Published artwork includes responsive web images, plus full-size web copies when **Discourage image downloads** is off; keep private images out of your pages. Original uploads and saved credentials are not included in the site export.
 
 ## 6. Connect a custom subdomain
 
@@ -100,6 +100,7 @@ Register the custom domain in **Pages first**. Adding only a DNS CNAME can produ
 | Symptom | Check |
 | --- | --- |
 | 401/403 or authentication failure | Token expiration, Account Pages Edit, selected account scope, and correct Account ID. |
+| Upload succeeds but the main website stays unchanged | Confirm the project’s production branch is `main`; a different branch makes the upload a preview deployment. See section 2. |
 | Project not found | Initialize a Pages project first; enter its exact project name and owning account. |
 | Subdomain fails or returns 522 | Add it under Pages Custom domains first, then check its CNAME and conflicting records. |
 | HTTPS not ready | Check Custom domains status and certificate provisioning in Cloudflare. |

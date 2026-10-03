@@ -1,5 +1,7 @@
 # Responsiveness and optimization audit — 2026-10-02
 
+This is a dated audit, not an exhaustive certification of every later version. Its original block counts, test counts and timings describe the 2026-10-02 fixtures. The current block catalogue and user instructions are in [README.md](README.md); later checks are noted below.
+
 The audit used a separate local server and test portfolio. The artist's project and Cloudflare credentials were not changed. The normal Astro output was rebuilt after testing; test images were removed from the generated public media folder. No live deployment was made.
 
 ## Coverage
@@ -54,8 +56,14 @@ Run `node --test tests/*.test.js` and `python -m unittest discover -s tests` for
 - Per-page published HTML removes editing hooks and hidden link-edit labels.
 - CSS rules for absent block classes/tags are removed while retaining nested responsive rules, negative selectors and quoted SVG URLs.
 - Unused paper/ink markup and SVG filters are omitted; only animated blocks are observed by the motion controller.
-- Static-only Astro builds emit zero JavaScript files. Mixed builds emit only the required material and/or sketchbook runtime files, referenced only by pages using those features.
+- Static-only Astro builds with download deterrence disabled emit zero JavaScript files. Download deterrence adds its image-protection runtime on artwork pages. Mixed builds emit only the required material and/or sketchbook runtime files, referenced only by pages using those features.
 - Controlled text + Free layout fixture: 14,795 → 4,416 bytes of uncompressed renderer HTML/CSS (70% reduction). Artwork transfer sizes remain separate from this measurement.
 - Actual mixed/static Astro builds, all 26 block renderers, CSS pruning edge cases and local generated runtime routing were checked. Browser checks confirmed sketchbook flipping, ink animation, a zero-script static page and no horizontal overflow at 390px.
 
 Repeat with `node scripts/test-published-build.mjs` when no build/publish job is active. Fixture output and its size report remain in ignored `data/` directories.
+
+## Documentation and recent regression check — 2026-10-03
+
+The current catalogue has 26 blocks. The automated suite currently contains 49 JavaScript and 42 Python tests. Recent isolated browser and Astro build checks covered cross-page block dragging and internal destinations, footer visibility, footer text editing, footer links, save/reload preservation and removal of editor controls from published HTML. These checks do not replace the original performance measurements or extend them to untested devices. Use the README's private-runtime commands to run the suite without requiring global Python or Node installations.
+
+Before running the published-build check, create `site/src/project.json` using **Build site** once and wait for build/publish jobs to finish. The script restores that input, but its disposable output remains under `data/published-build-test`.

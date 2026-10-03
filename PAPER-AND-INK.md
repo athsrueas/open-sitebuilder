@@ -12,7 +12,7 @@ Available materials:
 - Heading ink: clean type, letterpress impression, dry ink, or soft bleed.
 - Background pigment: a still wash, an expanding/contracting bloom, or drifting ink.
 
-Adjust grain size, texture strength, pigment color/strength and animation duration. Sketchbook pages retain their own paper color and inherit the surface texture. Opaque artwork covers the texture; transparent images show the surface behind them. Filters are restricted to headings and block quotations. The editor's controls are unaffected.
+Adjust grain size, texture strength, pigment color/strength and animation duration. Ink wash strength is limited to 0–50%; motion duration is 6–90 seconds. Numeric controls enforce their displayed ranges. Sketchbook pages retain their own paper color and inherit the surface texture. Opaque artwork covers the texture; transparent images show the surface behind them. Filters are restricted to headings and block quotations. The editor's controls are unaffected.
 
 These are procedural visual approximations, not a physical simulation of paper bending, wet pigment transport, or capillary absorption. StPageFlip provides the existing page-turn animation. Ink bloom uses a seeded turbulent pigment mask and slow transforms. Paper uses stitched SVG noise, diffuse lighting, fibers and weave patterns; no downloaded texture photographs or licensed artwork are bundled.
 
