@@ -9,12 +9,12 @@ function inputHarness(key,initial){
  wireStyleControls({querySelectorAll:selector=>selector==='[data-style]'?[input]:[]},{},null,(...args)=>changes.push(args));
  return {input,changes};
 }
-test('out-of-range ink input is never saved and is clamped when editing finishes',()=>{
+test('ink input clamps excessive and negative numbers immediately, before saving',()=>{
  const {input,changes}=inputHarness('inkWashStrength',12);
- input.value='999';input.oninput();assert.deepEqual(changes,[]);assert.ok(input.validityMessage);
- input.onchange();assert.equal(input.value,'50');assert.deepEqual(changes,[['inkWashStrength',50]]);
+ input.value='999';input.oninput();assert.equal(input.value,'50');assert.equal(input.validityMessage,'');assert.deepEqual(changes,[['inkWashStrength',50]]);
+ input.onchange();assert.equal(changes.length,1);
  input.onblur();assert.equal(changes.length,1);
- input.value='-4';input.oninput();input.onblur();assert.equal(input.value,'0');assert.equal(changes.at(-1)[1],0);
+ input.value='-4';input.oninput();assert.equal(input.value,'0');assert.equal(changes.at(-1)[1],0);input.onblur();
  input.value='';input.oninput();input.onblur();assert.equal(input.value,'0');assert.equal(changes.length,2);
 });
 test('multi-digit input can be completed without prematurely applying its minimum',()=>{

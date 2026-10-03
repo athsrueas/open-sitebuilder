@@ -21,9 +21,15 @@ export function wireStyleControls(root,theme,overrides,onChange){
       if(value!==lastValue){lastValue=value;onChange(key,value);}
     };
     el.oninput=()=>{
-      const value=el.value.trim()===''?NaN:Number(el.value);
+      let value=el.value.trim()===''?NaN:Number(el.value);
+      const field=STYLE_FIELDS[key];
+      // Enforce the upper bound immediately, including typed and pasted values.
+      // Allow a partial positive number while typing toward a positive minimum.
+      if(Number.isFinite(value)&&(value>field.max||field.min<=0&&value<field.min)){
+        value=normalizeStyleNumber(key,value,lastValue);el.value=String(value);
+      }
       if(!validStyle(key,value)||Math.abs(normalizeStyleNumber(key,value,lastValue)-value)>1e-7){el.setCustomValidity(`Choose ${STYLE_FIELDS[key].min} to ${STYLE_FIELDS[key].max}, in steps of ${STYLE_FIELDS[key].step}.`);return;}
-      el.setCustomValidity('');lastValue=value;onChange(key,value);
+      el.setCustomValidity('');if(value!==lastValue){lastValue=value;onChange(key,value);}
     };
     el.onchange=commit;el.onblur=commit;
     el.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();commit();}});
