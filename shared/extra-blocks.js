@@ -1,9 +1,10 @@
+import {textVisible} from './text-visibility.js';
 import {resolveLink} from './links.js';
 import {freeLayoutMarkup,freeLayoutCss} from './free-layout.js';
 import { safeUrl, videoEmbed } from './blocks.js';
 export function extraBlockMarkup(b, project, {esc,image}) {
-  const title=`<div class="eyebrow" data-edit="label">${esc(b.label)}</div><h2 data-edit="title">${esc(b.title)}</h2>`;
-  const text=`<p data-edit="text">${esc(b.text)}</p>`;
+  const title=(textVisible(b,'label')?`<div class="eyebrow" data-edit="label">${esc(b.label)}</div>`:'')+(textVisible(b,'title')?`<h2 data-edit="title">${esc(b.title)}</h2>`:'');
+  const text=textVisible(b,'text')?`<p data-edit="text">${esc(b.text)}</p>`:'';
   const link=(url,label,cls='')=>{const href=safeUrl(resolveLink(url,project));return href?`<a class="${cls}" href="${esc(href)}">${esc(label)}</a>`:`<span class="${cls}">${esc(label)}</span>`;};
   const items=(b.items||[]).map((item,i)=>{
     const heading=`<span data-edit="title">${esc(item.title)}</span>`;
@@ -11,7 +12,7 @@ export function extraBlockMarkup(b, project, {esc,image}) {
     const attr=`data-item-index="${i}"`;
     if(b.type==='accordion')return `<details ${attr}><summary>${heading}</summary>${body}</details>`;
     if(['links','social'].includes(b.type))return `<li ${attr}>${link(item.url,item.title)}<span data-edit="title" class="link-edit-label">${esc(item.title)}</span></li>`;
-    if(b.type==='cards')return `<article ${attr}>${image(b.images[i],project,b.fit,safeUrl(resolveLink(item.url,project)))}<h3>${heading}</h3>${body}${item.url?link(item.url,'View artwork','folio-button'):''}</article>`;
+    if(b.type==='cards')return `<article ${attr}>${image(b.images[i],project,b.fit,safeUrl(resolveLink(item.url,project)))}${textVisible(item,'title')?`<h3>${heading}</h3>`:''}${textVisible(item,'text')?body:''}${item.url&&(textVisible(item,'title')||textVisible(item,'text'))?link(item.url,'View artwork','folio-button'):''}</article>`;
     return `<article ${attr}><h3>${heading}</h3>${body}</article>`;
   }).join('');
   switch(b.type){
@@ -24,8 +25,8 @@ export function extraBlockMarkup(b, project, {esc,image}) {
     case 'accordion':return title+`<div class="folio-accordion">${items}</div>`;
     case 'columns':return title+`<div class="text-columns" style="--columns:${Math.min(4,Math.max(2,Number(b.columns)||2))}">${items}</div>`;
     case 'cards':return title+`<div class="artwork-cards">${items}</div>`;
-    case 'imageText':return `<div class="image-text ${b.reverse?'reverse':''}"><div class="paired-image">${image(b.images[0],project,b.fit)}</div><div>${title}${text}</div></div>`;
-    case 'cover':return `<div class="cover-image">${image(b.images[0],project,b.fit)}<div class="cover-text">${title}${text}</div></div>`;
+    case 'imageText':return `<div class="image-text ${!title&&!text?'image-only':''} ${b.reverse?'reverse':''}"><div class="paired-image">${image(b.images[0],project,b.fit)}</div>${title||text?`<div>${title}${text}</div>`:''}</div>`;
+    case 'cover':return `<div class="cover-image ${!title&&!text?'cover-art-only':''}">${image(b.images[0],project,b.fit)}${title||text?`<div class="cover-text">${title}${text}</div>`:''}</div>`;
     case 'video':{
       const embed=videoEmbed(b.url),url=safeUrl(b.url,true);
       return title+(embed?`<iframe class="folio-video" src="${esc(embed)}" title="${esc(b.title||'Video')}" loading="lazy" allow="fullscreen; picture-in-picture" allowfullscreen></iframe>`:url?`<video class="folio-video" controls preload="metadata" src="${esc(url)}"></video>`:'<div class="media-placeholder">Add a video URL</div>');
@@ -46,6 +47,7 @@ export const extraBlockCss=freeLayoutCss+`
   .text-columns,.artwork-cards{display:grid;grid-template-columns:repeat(var(--columns,3),minmax(0,1fr));gap:24px}.artwork-cards article>.artwork-view:first-child{height:300px;display:block}.artwork-cards h3{font-size:22px;font-weight:400}.artwork-cards .image-placeholder{height:300px}
   .image-text{display:grid;grid-template-columns:1fr 1fr;gap:35px;align-items:center}.image-text.reverse .paired-image{order:2}.paired-image>.artwork-view{height:450px;display:block}
   .cover-image{position:relative;min-height:400px;isolation:isolate}.cover-image>.artwork-view,.cover-image>.image-placeholder{position:absolute;inset:0;width:100%;height:100%;z-index:-2}.cover-image::before{content:'';position:absolute;inset:0;background:#0007;z-index:-1}.cover-text{padding:60px 8%;color:white;min-height:400px;display:flex;flex-direction:column;justify-content:center}
+  .image-text.image-only{grid-template-columns:1fr}.cover-art-only::before{display:none}.cover-art-only>.artwork-view,.cover-art-only>.image-placeholder{position:relative;inset:auto;height:450px;z-index:auto}
   .folio-video{width:100%;aspect-ratio:16/9;border:0;display:block;background:#000}.media-placeholder{padding:60px 20px;background:#8881;text-align:center}audio{width:100%}
   .folio-button{display:inline-block;padding:12px 22px;border:1px solid currentColor;border-radius:4px;text-decoration:none}.link-list{padding:0;list-style:none;line-height:2.2}.social-links{display:flex;gap:20px;flex-wrap:wrap}.link-edit-label{display:none}
   @media(max-width:650px){.text-columns,.artwork-cards,.image-text{grid-template-columns:1fr}.image-text.reverse .paired-image{order:0}}

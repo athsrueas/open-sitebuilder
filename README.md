@@ -46,6 +46,12 @@ This is a deterrent, not copy protection. Displayed web images can still be retr
 
 New sketchbooks start with four pages. There is no fixed page-count limit: use **+ Add sketchbook page** on the canvas toolbar or in **Details**. Each page has independent artwork, title, caption, paper color, image fit and cover settings. Enable **Fill page** directly on a sketchbook page, or **Fill page with artwork** in Details, to use edge-to-edge artwork with cropping and hide the page title, caption and number. Text is preserved and reappears when switched off. Reorder or delete pages in Details. At least two pages are needed for page flipping. Very large sketchbooks are still constrained by browser memory and the general 60 MB project-save request limit; photos are uploaded separately.
 
+## Removing built-in text from artwork blocks
+
+Use the **×** beside a heading, caption or card description to remove that text area from the layout. **Remove all text** in the block toolbar removes all built-in text at once. Each artwork card also has **Remove card text**; its image keeps the configured destination while the text and navigation button disappear. Empty text wrappers and their margins are omitted from both the editor and published HTML.
+
+Restore individual areas through **Text areas** on the canvas or the **Show block/card…** checkboxes in Details, or use **Restore all text / Restore card text**. Wording is kept for restoration. Text-free image-and-text blocks use the full image column; text-free cover images omit the text container and dimming overlay. Image captions and gallery, carousel, sketchbook and media headings can also be removed. Sketchbook page text continues to use its existing **Fill page with artwork** option.
+
 ## Links and page addresses
 
 Link controls explain what visitors can click and where it takes them. For artwork cards, the image and **View artwork** button share the configured destination. With no destination, no navigation button appears and the image keeps its normal artwork-viewing behavior. Links open in the same tab; artwork viewing opens separately when enabled. Test navigation using the built site preview, since canvas clicks select content for editing.

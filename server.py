@@ -119,6 +119,12 @@ def validate_styles(values, block=False):
         if not valid: raise ValueError('Invalid style value: ' + key)
 
 
+def validate_hidden_text(value, allowed):
+    if not isinstance(value, list) or len(value)>len(allowed) or any(not isinstance(field,str) or field not in allowed for field in value) or len(set(value))!=len(value):
+        raise ValueError('Invalid removed text areas.')
+
+TEXT_FIELDS={'image':('text',),'gallery':('label','title'),'carousel':('label','title'),'cards':('label','title'),'imageText':('label','title','text'),'cover':('label','title','text'),'sketchbook':('label','title'),'video':('label','title'),'audio':('label','title')}
+
 def validate_project(p):
     if not isinstance(p, dict) or p.get('version') != 1:
         raise ValueError('Unsupported project format.')
@@ -166,6 +172,7 @@ def validate_project(p):
             if block.get('type') not in BLOCKS:
                 raise ValueError('Unknown block type.')
             check_text(block, ('title', 'label', 'text'))
+            if 'hiddenText' in block: validate_hidden_text(block['hiddenText'], TEXT_FIELDS.get(block['type'], ()))
             for field in BLOCKS[block['type']]['fields']:
                 key = field['key']
                 value = block.get(key, BLOCKS[block['type']]['defaults'].get(key))
@@ -183,6 +190,7 @@ def validate_project(p):
                 for item in block['items']:
                     if not isinstance(item, dict): raise ValueError('Invalid block item.')
                     check_text(item, ('title', 'text', 'url'))
+                    if 'hiddenText' in item: validate_hidden_text(item['hiddenText'], ('title','text') if block['type']=='cards' else ())
                     if item['url'] and not valid_url(item['url']): raise ValueError('Invalid item link.')
             if block['type'] == 'freeLayout':
                 layers = block.get('layers')

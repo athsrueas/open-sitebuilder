@@ -1,3 +1,4 @@
+import {textVisible} from './text-visibility.js';
 import {blockAnchor,pagePath} from './links.js';
 import {pageFeatures,publishedLayers,cleanPublishedHtml,prunePublishedCss} from './published.js';
 import {initPortfolio} from './runtime.js';
@@ -37,11 +38,11 @@ export function portfolioMarkup(project, pageId, options={}) {
   `:'');
   let html = (options.published?publishedDefs(features.materials):materialDefs)+(splash?'':`<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map(p => p.hideFromNavigation?'':`<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${pagePath(project,p)}">${escapeHtml(p.title)}</a>`).join('')}</nav></header>`)+`<main${splash?' class="splash-page"':''}>${page.blocks.map((b,blockIndex) => {
     const reused=options.reuseBlock?.(b);if(reused)return reused;
-    const heading = `<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div><h2 data-edit="title">${escapeHtml(b.title)}</h2>`;
+    const heading = (textVisible(b,'label')?`<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div>`:'')+(textVisible(b,'title')?`<h2 data-edit="title">${escapeHtml(b.title)}</h2>`:'');
     let content = extraBlockMarkup(b,project,{esc:escapeHtml,image});
     if(b.type==='hero') content=`<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div><h1 data-edit="title">${escapeHtml(b.title)}</h1><p data-edit="text">${escapeHtml(b.text)}</p>`;
     if(b.type==='text') content=heading+`<p data-edit="text">${escapeHtml(b.text)}</p>`;
-    if(b.type==='image') content=`<div class="single-image" style="width:${Math.min(100,Math.max(20,Number(b.width)||100))}%;${b.height ? "height:"+Math.min(1200,Math.max(120,Number(b.height)||500))+"px;" : ""}margin-inline:auto">${image(b.images[0],project,b.fit)}</div><div class="caption" data-edit="text">${escapeHtml(b.text)}</div>`;
+    if(b.type==='image') content=`<div class="single-image" style="width:${Math.min(100,Math.max(20,Number(b.width)||100))}%;${b.height ? "height:"+Math.min(1200,Math.max(120,Number(b.height)||500))+"px;" : ""}margin-inline:auto">${image(b.images[0],project,b.fit)}</div>${textVisible(b,'text')?`<div class="caption" data-edit="text">${escapeHtml(b.text)}</div>`:''}`;
     if(b.type==='gallery'||b.type==='carousel') content=heading+`<div class="${b.type}">${b.images.map(id=>`<figure>${image(id,project,b.fit)}</figure>`).join('') || '<div class="image-placeholder">Add images in the editor</div>'}</div>`;
     if(b.type==='divider') content='<hr class="rule" />';
     if(b.type==='sketchbook') content=heading+`<div class="book-wrap"><div class="book" data-book="${b.id}">${b.spreads.map((s,i)=>`<div class="book-page${s.fillPage?' book-page-fill':''}" data-spread-id="${s.id}" style="--paper:${safeColor(s.background)}" data-density="${s.hard?'hard':'soft'}">${image(s.image,project,s.fillPage?'cover':s.fit)}${s.fillPage?'':`<h3 data-edit="title">${escapeHtml(s.title)}</h3><p data-edit="caption">${escapeHtml(s.caption)}</p><span class="caption">${i+1}</span>`}</div>`).join('')}</div><div class="book-controls"><button data-prev="${b.id}" aria-label="Previous sketchbook page">← Previous</button><span data-count="${b.id}"></span><button data-next="${b.id}" aria-label="Next sketchbook page">Next →</button></div></div>`;

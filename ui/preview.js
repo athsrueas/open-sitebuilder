@@ -1,3 +1,5 @@
+import {textControlsMarkup,wireTextControls} from '/ui/text-controls.js';
+import {TEXT_FIELDS,allTextRemoved,textVisible} from '/shared/text-visibility.js';
 import {linkControlMarkup,wireLinkControls} from '/ui/link-controls.js';
 import {wireFreeLayout,freeEditorCss} from '/ui/free-layout-editor.js';
 import {measure} from '/ui/diagnostics.js';
@@ -26,6 +28,7 @@ editorStyle.textContent = materialTextureCss(['cotton','watercolor','laid','canv
   #drop-marker::before{content:'Drop block here';position:absolute;top:-25px;left:0;background:#111111;color:#fff;font:11px Arial,sans-serif;padding:5px 10px;border-radius:0}
 `;
 editorStyle.textContent += `
+  .removable-text{position:relative}.remove-text-area{position:absolute;right:0;top:0;z-index:8;font:12px Arial,sans-serif!important;padding:4px 7px!important;background:#fff!important;color:#111!important;border:1px solid #ccc!important;opacity:.35}.removable-text:hover>.remove-text-area,.remove-text-area:focus{opacity:1}.text-area-controls .check{display:flex;align-items:center;gap:6px}.text-area-controls input{min-width:0;width:auto}
   .folio-block.is-selected::before{display:none}
   [contenteditable]{cursor:text;outline:none;min-height:1.2em;white-space:pre-wrap}
   [contenteditable]:hover{outline:1px dashed #111111;outline-offset:4px}
@@ -70,7 +73,7 @@ document.body.append(marker);
 const send = data => parent.postMessage(data, location.origin);
 
 function render(data) {
-  if(document.hasFocus()&&root.contains(document.activeElement)&&(document.activeElement.isContentEditable||document.activeElement.matches('.canvas-options input,.item-options input,.canvas-styles input,.canvas-styles select'))){pendingRender=data;return;}
+  if(document.hasFocus()&&root.contains(document.activeElement)&&(document.activeElement.isContentEditable||document.activeElement.matches('.canvas-options input:not([type=checkbox]),.item-options input:not([type=checkbox]),.canvas-styles input:not([type=checkbox]),.canvas-styles select'))){pendingRender=data;return;}
   pendingRender=null;
   const openStyles=[...root.querySelectorAll('.canvas-styles[open]')].map(el=>({id:el.closest('[data-block]').dataset.block,groups:[...el.querySelectorAll('.style-group[open]')].map(g=>g.dataset.styleGroup)}));
   const scroll = window.scrollY;
@@ -187,6 +190,13 @@ function decorate(container,page,theme,project){
       const photo=document.createElement('button');photo.textContent=SINGLE_IMAGE_TYPES.includes(b.type)?'Replace photo':'Add photos';photo.onclick=()=>choosePhotos({blockId:b.id});toolbar.append(photo);
       const fit=document.createElement('button');fit.textContent=b.fit==='cover'?'Show whole photo':'Crop to fill';fit.onclick=()=>send({type:'block-action',blockId:b.id,action:'fit'});toolbar.append(fit);
     }
+    if(TEXT_FIELDS[b.type]){
+      const all=document.createElement('button');all.textContent=allTextRemoved(b)?'Restore all text':'Remove all text';
+      all.onclick=()=>send({type:'all-text-visibility',blockId:b.id,visible:allTextRemoved(b)});toolbar.append(all);
+      const textOptions=document.createElement('details');textOptions.className='editor-chrome canvas-styles';
+      textOptions.innerHTML='<summary>Text areas</summary>'+textControlsMarkup(b);
+      wireTextControls(textOptions,(field,visible,itemIndex)=>send({type:'text-visibility',blockId:b.id,field,visible,itemIndex}));toolbar.append(textOptions);
+    }
     const styles=document.createElement('details');styles.className='editor-chrome canvas-styles';
     styles.innerHTML='<summary>Styles</summary><div class="canvas-style-fields"></div>';
     const refreshStyles=(groups)=>{
@@ -229,7 +239,7 @@ function decorate(container,page,theme,project){
           controls.innerHTML=linkControlMarkup(project,b.items[i].url,b.type);
           wireLinkControls(controls,project,(_,value,inline)=>send({type:'item-link',blockId:b.id,index:i,value,inline}));
         }
-        if(b.type==='cards'){const photo=document.createElement('button');photo.textContent='Add / replace photo';photo.onclick=()=>choosePhotos({blockId:b.id,itemIndex:i});controls.append(photo);}
+        if(b.type==='cards'){const toggle=document.createElement('button');const removed=['title','text'].every(field=>!textVisible(b.items[i],field));toggle.textContent=removed?'Restore card text':'Remove card text';toggle.onclick=()=>{for(const field of ['title','text'])send({type:'text-visibility',blockId:b.id,itemIndex:i,field,visible:removed});};controls.append(toggle);controls.insertAdjacentHTML('beforeend',textControlsMarkup(b,i));wireTextControls(controls,(field,visible,itemIndex)=>send({type:'text-visibility',blockId:b.id,field,visible,itemIndex}));const photo=document.createElement('button');photo.textContent='Add / replace photo';photo.onclick=()=>choosePhotos({blockId:b.id,itemIndex:i});controls.append(photo);}
         const remove=document.createElement('button');remove.textContent='Remove item';remove.onclick=()=>send({type:'item-action',blockId:b.id,action:'remove',index:i});controls.append(remove);item.append(controls);
       });
       const add=document.createElement('button');add.className='editor-chrome add-item';add.textContent='+ Add item';add.onclick=()=>send({type:'item-action',blockId:b.id,action:'add'});section.append(add);
@@ -238,6 +248,16 @@ function decorate(container,page,theme,project){
       el.contentEditable='true';el.setAttribute('role','textbox');el.setAttribute('aria-label',`${el.dataset.cell?'Table cell '+el.dataset.cell:el.dataset.edit==='attribution'?'Attribution':el.dataset.edit==='text'?'Text':el.dataset.edit==='caption'?'Caption':el.dataset.edit==='label'?'Small heading':'Title'} on page`);
       el.dataset.placeholder=el.dataset.edit==='label'?'Add a small heading…':el.dataset.edit==='attribution'?'Add an attribution…':el.dataset.edit==='text'||el.dataset.edit==='caption'?'Write here…':'Add a title…';
       el.spellcheck=true;
+    });
+    if(TEXT_FIELDS[b.type])section.querySelectorAll('[data-edit]').forEach(el=>{
+      if(el.closest('[data-spread-id]'))return;
+      const item=el.closest('[data-item-index]'),field=el.dataset.edit;
+      if(!(item&&b.type==='cards'?['title','text']:TEXT_FIELDS[b.type]).includes(field))return;
+      const target=el.tagName==='SPAN'&&el.parentElement.tagName==='H3'?el.parentElement:el;
+      const wrap=document.createElement('div');wrap.className='removable-text';target.before(wrap);wrap.append(target);
+      const remove=document.createElement('button');remove.className='editor-chrome remove-text-area';remove.textContent='×';
+      remove.setAttribute('aria-label','Remove '+(item?'card ':'block ')+(field==='label'?'small heading':field==='text'?'description / caption':'title'));
+      remove.title=remove.getAttribute('aria-label');remove.onpointerdown=e=>e.preventDefault();remove.onclick=e=>{e.preventDefault();e.stopPropagation();send({type:'text-visibility',blockId:b.id,field,visible:false,itemIndex:item?Number(item.dataset.itemIndex):undefined});};wrap.append(remove);
     });
     section.querySelectorAll('[data-spread-id]').forEach((el,index)=>{
       const spread=b.spreads.find(s=>s.id===el.dataset.spreadId);

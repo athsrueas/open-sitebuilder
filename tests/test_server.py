@@ -34,6 +34,18 @@ class ProjectValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'navigation visibility'):
             server.validate_project(project)
 
+    def test_removed_text_areas_validate_without_discarding_text(self):
+        project=server.default_project()
+        block=project['pages'][0]['blocks'][0]
+        block.update(type='cards',items=[dict(title='Title',text='Description',url='',hiddenText=['title','text'])],hiddenText=['label','title'])
+        server.validate_project(project)
+        for value in (None, True, ['url'], ['title','title'], [['title']]):
+            candidate=copy.deepcopy(project)
+            candidate['pages'][0]['blocks'][0]['hiddenText']=value
+            with self.assertRaisesRegex(ValueError, 'removed text'): server.validate_project(candidate)
+        block['items'][0]['hiddenText']=['url']
+        with self.assertRaisesRegex(ValueError, 'removed text'): server.validate_project(project)
+
     def test_sketchbook_fill_page_is_optional_and_boolean(self):
         project=server.default_project()
         spread=project['pages'][0]['blocks'][1]['spreads'][0]
