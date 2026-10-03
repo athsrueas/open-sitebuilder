@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-03",
+      "title": "Move blocks between pages",
+      "description": "Drag canvas or sidebar block handles onto sticky page names to move entire blocks, open the destination and select the moved block. Preserve artwork, sketchbook pages, free layers and styles; update internal block destinations. Offer a Move block to page selector in Details and reject full pages without modifying the portfolio.",
+      "commit": "90588c0e4e1b7eafa5fe44abe756f9894aeea4da"
+    },
+    {
+      "date": "2026-10-03",
       "title": "Removable artwork text areas",
       "description": "Remove individual headings and descriptions from mixed artwork blocks with canvas controls, remove all block or card text, and restore preserved wording. Omit removed text wrappers and margins from previews and published HTML, retain card image destinations, collapse image-and-text columns, and remove text-free cover overlays. Validate saved visibility settings and restore checkbox changes immediately.",
       "commit": "21b541f0b42c0be4c0a4bac98edd6a3e2ad4cf6a"
