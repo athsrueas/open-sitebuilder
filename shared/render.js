@@ -1,3 +1,4 @@
+import {pageFeatures,publishedLayers,cleanPublishedHtml,prunePublishedCss} from './published.js';
 import {initPortfolio} from './runtime.js';
 export {initPortfolio} from './runtime.js';
 import {materialDefs,materialLayers} from './materials.js';
@@ -16,6 +17,7 @@ export function portfolioMarkup(project, pageId, options={}) {
   const page = project.pages.find(p => p.id === pageId) || project.pages[0];
   const t = project.theme;
   const splash=project.presentation==='splash';
+  const features=pageFeatures(project,page);
   const css = extraBlockCss + `
     *{box-sizing:border-box}body{margin:0;background:${safeColor(t.background)};color:${safeColor(t.ink)};font-family:${t.serif ? 'Georgia,serif':'Arial,sans-serif'}}
     a{color:inherit}header{max-width:1200px;margin:auto;padding:32px 5%;display:flex;justify-content:space-between;gap:24px;align-items:center}header strong{font-size:22px}nav{display:flex;gap:22px;flex-wrap:wrap}nav a{text-decoration:none;font:12px Arial,sans-serif;text-transform:uppercase;letter-spacing:1.4px}nav a.active{border-bottom:2px solid ${safeColor(t.accent)};padding-bottom:6px}
@@ -31,7 +33,7 @@ export function portfolioMarkup(project, pageId, options={}) {
     .splash-page p:empty,.splash-page .eyebrow:empty{display:none}
     .splash-page .ink-wash i{width:85%;left:-28%;top:-40%}.splash-page .ink-wash i:nth-child(2){width:85%;left:50%;top:18%}.splash-page .ink-wash i:nth-child(3){width:50%;left:28%;top:72%}
   `:'');
-  const html = materialDefs+(splash?'':`<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map((p,i) => `<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${i===0?'/':'/'+p.slug+'/'}">${escapeHtml(p.title)}</a>`).join('')}</nav></header>`)+`<main${splash?' class="splash-page"':''}>${page.blocks.map(b => {
+  let html = (options.published?publishedDefs(features.materials):materialDefs)+(splash?'':`<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map((p,i) => `<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${i===0?'/':'/'+p.slug+'/'}">${escapeHtml(p.title)}</a>`).join('')}</nav></header>`)+`<main${splash?' class="splash-page"':''}>${page.blocks.map((b,blockIndex) => {
     const reused=options.reuseBlock?.(b);if(reused)return reused;
     const heading = `<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div><h2 data-edit="title">${escapeHtml(b.title)}</h2>`;
     let content = extraBlockMarkup(b,project,{esc:escapeHtml,image});
@@ -41,9 +43,10 @@ export function portfolioMarkup(project, pageId, options={}) {
     if(b.type==='gallery'||b.type==='carousel') content=heading+`<div class="${b.type}">${b.images.map(id=>`<figure>${image(id,project,b.fit)}</figure>`).join('') || '<div class="image-placeholder">Add images in the editor</div>'}</div>`;
     if(b.type==='divider') content='<hr class="rule" />';
     if(b.type==='sketchbook') content=heading+`<div class="book-wrap"><div class="book" data-book="${b.id}">${b.spreads.map((s,i)=>`<div class="book-page" data-spread-id="${s.id}" style="--paper:${safeColor(s.background)}" data-density="${s.hard?'hard':'soft'}">${image(s.image,project,s.fit)}<h3 data-edit="title">${escapeHtml(s.title)}</h3><p data-edit="caption">${escapeHtml(s.caption)}</p><span class="caption">${i+1}</span></div>`).join('')}</div><div class="book-controls"><button data-prev="${b.id}" aria-label="Previous sketchbook page">← Previous</button><span data-count="${b.id}"></span><button data-next="${b.id}" aria-label="Next sketchbook page">Next →</button></div></div>`;
-    return `<section class="folio-block" data-block="${b.id}" style="${escapeHtml(styleVars(b.styles,true))}">${materialLayers}${content}</section>`;
+    return `<section class="folio-block" ${features.materials[blockIndex].paperMotion==='soft-light'||['bloom','drift'].includes(features.materials[blockIndex].inkWash)?'data-material-motion="true"':''} data-block="${b.id}" style="${escapeHtml(styleVars(b.styles,true))}">${options.published?publishedLayers(features.materials[blockIndex]):materialLayers}${content}</section>`;
   }).join('')}</main>`+(splash?'':`<footer>${escapeHtml(project.name)}${project.description ? " · " : ""}<span data-project-edit="description">${escapeHtml(project.description)}</span></footer>`);
-  return { css:styledCss, html };
+  if(options.published){html=cleanPublishedHtml(html);return {css:prunePublishedCss(styledCss,html),html,features};}
+  return { css:styledCss, html,features };
 }
 export function renderPortfolio(root, project, pageId, PageFlip, navigate) {
   const { css, html } = portfolioMarkup(project, pageId);
@@ -53,4 +56,10 @@ export function renderPortfolio(root, project, pageId, PageFlip, navigate) {
   container.innerHTML = html;
   root.replaceChildren(style, container);
   return initPortfolio(root, PageFlip, navigate);
+}
+
+function publishedDefs(materials){
+  const used=new Set(materials.map(v=>v.inkFinish).filter(v=>v!=='clean'));
+  if(!used.size)return '';
+  return materialDefs.replace(/<filter id="folio-ink-([^"]+)"[\s\S]*?<\/filter>/g,(markup,name)=>used.has(name)?markup:'');
 }

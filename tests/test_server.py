@@ -125,6 +125,17 @@ class LocalApiTests(unittest.TestCase):
         req = urllib.request.Request(self.url + path, data=payload, headers=req_headers)
         return urllib.request.urlopen(req)
 
+    def test_built_runtime_assets_use_generated_directory(self):
+        root=server.DATA/'built-runtime-root'
+        runtime=root/'site/dist/folio-assets'
+        runtime.mkdir(parents=True)
+        (runtime/'materials.js').write_text('console.log("motion")')
+        with patch.object(server,'ROOT',root):
+            with self.request('/folio-assets/materials.js') as response:
+                self.assertIn('javascript',response.headers['Content-Type'])
+                self.assertEqual(response.read(),b'console.log("motion")')
+            with self.assertRaises(urllib.error.HTTPError): self.request('/folio-assets/%2e%2e/%2e%2e/project.json')
+
     def test_block_catalogue_is_served_as_json(self):
         with self.request('/shared/blocks.json') as response:
             self.assertEqual(response.headers['Content-Type'], 'application/json')

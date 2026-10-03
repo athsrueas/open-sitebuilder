@@ -130,7 +130,7 @@ def validate_project(p):
     for page in pages:
         check_id(page.get('id'))
         check_text(page, ('title', 'slug'))
-        if not SLUG.fullmatch(page['slug']) or page['slug'] in slugs or page['slug'] in ('media', '_astro'):
+        if not SLUG.fullmatch(page['slug']) or page['slug'] in slugs or page['slug'] in ('media', '_astro', 'folio-assets'):
             raise ValueError('Page URLs must be unique lowercase words separated by hyphens.')
         slugs.add(page['slug'])
         if not isinstance(page.get('blocks'), list) or len(page['blocks']) > 200:
@@ -440,7 +440,7 @@ class Handler(BaseHTTPRequestHandler):
                 if (DATA / 'originals' / (uid + extension)).is_file():
                     return self.file(DATA / 'originals', uid + extension)
             return self.reply(404, {'error': 'Original unavailable.'})
-        for prefix, base in (('/ui/', ROOT / 'ui'), ('/shared/', ROOT / 'shared'), ('/media/', DATA / 'media'), ('/built/', ROOT / 'site/dist')):
+        for prefix, base in (('/ui/', ROOT / 'ui'), ('/shared/', ROOT / 'shared'), ('/media/', DATA / 'media'), ('/built/', ROOT / 'site/dist'), ('/folio-assets/', ROOT / 'site/dist/folio-assets')):
             if path.startswith(prefix):
                 relative = path[len(prefix):]
                 if prefix == '/built/' and (not relative or relative.endswith('/')):

@@ -48,3 +48,14 @@ Image loading/application produced occasional 67–104 ms main-thread long tasks
 The audit does not exhaust every possible combination, imported artwork, or custom URL. Physical iOS/Android devices, Safari/Firefox, network throttling, third-party video/audio service performance and authenticated Cloudflare publishing were not tested. The builder remains a desktop tool; large images and many simultaneous sketchbooks will use more memory than text-only pages.
 
 Run `node --test tests/*.test.js` and `python -m unittest discover -s tests` for regressions. Add `?diagnostics=1` to the local editor URL to enable page-local render/long-task measurements. The preview inherits this flag. Summaries are available in the hidden DOM output `#folio-diagnostics`; no measurements are transmitted and diagnostics are not included in the generated site.
+
+## Published export optimization — 2026-10-02
+
+- Per-page published HTML removes editing hooks and hidden link-edit labels.
+- CSS rules for absent block classes/tags are removed while retaining nested responsive rules, negative selectors and quoted SVG URLs.
+- Unused paper/ink markup and SVG filters are omitted; only animated blocks are observed by the motion controller.
+- Static-only Astro builds emit zero JavaScript files. Mixed builds emit only the required material and/or sketchbook runtime files, referenced only by pages using those features.
+- Controlled text + Free layout fixture: 14,795 → 4,416 bytes of uncompressed renderer HTML/CSS (70% reduction). Artwork transfer sizes remain separate from this measurement.
+- Actual mixed/static Astro builds, all 26 block renderers, CSS pruning edge cases and local generated runtime routing were checked. Browser checks confirmed sketchbook flipping, ink animation, a zero-script static page and no horizontal overflow at 390px.
+
+Repeat with `node scripts/test-published-build.mjs` when no build/publish job is active. Fixture output and its size report remain in ignored `data/` directories.

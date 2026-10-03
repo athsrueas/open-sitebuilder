@@ -49,6 +49,8 @@ The editor uses a minimal black-and-white interface. **Workspace** lets you choo
 
 Desktop and mobile arrangements are separate. **Mobile layout** opens a portrait canvas with independent layer positions and sizes. New blocks default to automatic mobile stacking. The canvas displays an explicit mobile status message; **Automatic mobile fix** restores a readable stack, and **Preview mobile result** shows the phone output. If custom mobile setup is incomplete after adding a layer, the exported site automatically stacks the entire block on phones until all layers have mobile positions. Mobile stacking uses the layer list's bottom-to-top order as reading order; review that order if desktop layering differs from the intended reading sequence.
 
+Whole page blocks currently follow a vertical flow. Gallery and Artwork cards provide image grids, Text columns and Image + text provide side-by-side content, and Free layout provides independent image/text layers. Arbitrary blocks cannot yet be nested in a row or grid container.
+
 The library contains 26 blocks:
 
 | Group | Blocks |
@@ -474,3 +476,11 @@ The expandable inventory lists installed JavaScript packages, including indirect
 `shared/about.json` is the content source for both screens. After changing history, credits or dependencies, run `node scripts/sync-about.mjs`; `node scripts/sync-about.mjs --check` and the automated suite detect README drift. Setup refreshes the inventory from installed dependencies.
 
 <!-- folio-about:end -->
+
+## Published site size
+
+Astro renders each page to HTML and CSS at build time. Project JSON, the block catalogue, theme presets, editor tools, image editing libraries and Python configuration are not sent to visitors. Published pages remove editor-only attributes and hidden editing labels; CSS is pruned against each page's actual elements and classes. Only selected paper/ink decorations and SVG filters remain.
+
+Static pages, including Free layout and static paper textures, contain no JavaScript. Animated materials load a small motion controller; sketchbook pages load StPageFlip and its initialization only on those pages. The build emits no runtime files if the entire site is static. Used images keep responsive derivatives, and the Python build pipeline removes unused generated media. Original uploads remain local.
+
+Run `node scripts/test-published-build.mjs` to verify mixed and static Astro exports. It temporarily replaces the generated build input, restores it even if a check fails, and writes disposable output under `data/`. Stop any build/publish job before running it. The controlled plain-text + Free layout fixture reduced uncompressed HTML/CSS from 14,795 to 4,416 bytes (70%); this is a fixture measurement, not a guarantee for image-heavy sites. Tests also check static paper, animated ink and sketchbooks. External runtime files follow [Astro's documented public-file script pattern](https://docs.astro.build/en/guides/client-side-scripts/).

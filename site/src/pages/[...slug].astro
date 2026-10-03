@@ -5,7 +5,7 @@ export function getStaticPaths() {
   return project.pages.map((page, index) => ({params: {slug: index === 0 ? undefined : page.slug}, props: {page}}));
 }
 const { page } = Astro.props;
-const { css, html } = portfolioMarkup(project, page.id);
+const { css, html,features } = portfolioMarkup(project, page.id,{published:true});
 ---
 <!doctype html>
 <html lang="en">
@@ -13,12 +13,8 @@ const { css, html } = portfolioMarkup(project, page.id);
   <body>
     <style is:inline set:html={css}></style>
     <div id="portfolio" set:html={html}></div>
-    <script>
-      import { initPortfolio } from '../../../shared/runtime.js';
-      const root=document.querySelector('#portfolio');
-      if(root.querySelector('[data-book]')){
-        import('page-flip').then(({PageFlip})=>initPortfolio(root,PageFlip)).catch(()=>initPortfolio(root));
-      }else initPortfolio(root);
-    </script>
+    {features.books && <script is:inline defer src="/folio-assets/page-flip.js"></script>}
+    {features.books && <script is:inline defer src="/folio-assets/books.js"></script>}
+    {features.motion && !features.books && <script is:inline defer src="/folio-assets/materials.js"></script>}
   </body>
 </html>
