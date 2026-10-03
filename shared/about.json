@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "About, feature history and library credits",
+      "description": "Feature additions with linked commits, library-to-feature attributions, searchable dependency credits, and shared content synchronized with the README.",
+      "commit": "49136c1ade1139c1aa828e2d97d358a839bf294f"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Performance and responsive layouts",
       "description": "Incremental canvas previews, responsive image derivatives, background image processing, smaller exported scripts, and narrow-screen editor layouts.",
       "commit": "67754619d87a3b83236fc242536de819dc2ed59c"
