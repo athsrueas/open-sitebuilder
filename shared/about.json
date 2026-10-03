@@ -4,6 +4,12 @@
   "repository": "https://github.com/athsrueas/open-sitebuilder",
   "history": [
     {
+      "date": "2026-10-03",
+      "title": "Image crop locks and editing workflow",
+      "description": "Default to original image proportions, add common portrait and landscape ratios including 2:3 and 3:2, keep crop handles locked to the selected ratio, constrain selections to artwork, show pixel dimensions and reset selections. Preserve pending color adjustments across crop, resize, transform and cutout tool changes; improve crop cancellation and history.",
+      "commit": "aebd33678e370ae06a2be1fbb4502ccc1dc646e6"
+    },
+    {
       "date": "2026-10-02",
       "title": "Updates with actively written diagnostic logs",
       "description": "Exclude transient root-level diagnostic logs from portfolio snapshots so the updater can back up data while its transcript is open. Verify locked-log handling, snapshot creation during a real updater transcript, data preservation and failed-install recovery.",
