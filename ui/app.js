@@ -6,7 +6,7 @@ import {styleControls,wireStyleControls} from '/ui/style-controls.js';
 import { BLOCKS, IMAGE_TYPES, SINGLE_IMAGE_TYPES, safeUrl } from '/shared/blocks.js';
 import { blockLibraryMarkup, wireBlockSearch } from '/ui/block-library.js';
 import { escapeHtml as esc } from '/shared/render.js';
-import { editText, resizeImage, assignArtwork } from '/ui/canvas-model.js';
+import { editText, resizeImage, assignArtwork, removeBlock, restoreBlock } from '/ui/canvas-model.js';
 const $ = s => document.querySelector(s);
 $('#about').onclick=async()=>{const button=$('#about');button.disabled=true;try{await (await import('/ui/about.js')).openAbout();}catch(error){toast(error.message);}finally{button.disabled=false;}};
 const id = () => crypto.randomUUID().replaceAll('-','');
@@ -15,6 +15,20 @@ let previewFrame=0,previewFocus=false;
 let project, pageId, blockId, tab='pages', saveTimer, cleanupTimer, saveQueue=Promise.resolve(), revision=0, themesOpen=true;
 const page = () => project.pages.find(p=>p.id===pageId);
 const block = () => page().blocks.find(b=>b.id===blockId);
+const deletedBlocks=[];
+function deleteBlock(uid){
+  const removed=removeBlock(page(),uid);if(!removed)return;
+  deletedBlocks.push({...removed,pageId});if(deletedBlocks.length>20)deletedBlocks.shift();
+  blockId=page().blocks[Math.min(removed.index,page().blocks.length-1)]?.id;
+  changed(true);toast('Block deleted. Use Undo delete in Pages to restore it.');
+}
+function undoDelete(){
+  const removed=deletedBlocks.at(-1);if(!removed)return;
+  const target=project.pages.find(p=>p.id===removed.pageId);
+  if(!target){deletedBlocks.pop();renderLeft();toast('The page containing that block no longer exists.');return;}
+  if(!restoreBlock(target,removed)){toast('Cannot restore this block: the page is full or the block already exists.');return;}
+  deletedBlocks.pop();pageId=target.id;blockId=removed.block.id;tab='pages';changed(true,true);toast('Block restored.');
+}
 async function api(path, value, extra={}) {
   const response = await fetch('/api/'+path, value===undefined ? {} : {method:'POST',headers:{'X-Folio-Token':$('meta[name=folio-token]').content,'Content-Type':'application/json',...extra},body:value instanceof Blob ? value : JSON.stringify(value)});
   const data = await response.json();
@@ -33,8 +47,10 @@ function render(){measure('editorRender',()=>{renderLeft();renderInspector();});
 function renderLeft(){
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   if(tab==='pages'){
-    $('#left-content').innerHTML=`${project.pages.map((p,i)=>`<div class="page-item ${p.id===pageId?'active':''}"><button data-select-page="${p.id}">▱ &nbsp; ${esc(p.title)} ${i===0?'<small>HOME</small>':''}</button></div>`).join('')}<button id="add-page" class="wide-button">+ New page</button><label>Page title<input id="page-title" value="${esc(page().title)}"></label><label>Page URL<input id="page-slug" value="${esc(page().slug)}"></label><p class="small-note">The first page is your homepage.</p><div class="settings-row"><button id="page-up" ${project.pages.indexOf(page())===0?'disabled':''}>Move earlier</button><button id="remove-page" class="danger" ${project.pages.length===1?'disabled':''}>Delete page</button></div><div class="section-title">ON THIS PAGE <span>${page().blocks.length} BLOCKS</span></div><div id="block-list">${page().blocks.map(b=>`<div draggable="true" data-block-id="${b.id}" class="block-item ${b.id===blockId?'selected':''}"><span class="drag-grip">⠿</span><span class="block-symbol">${types[b.type][0]}</span><span class="block-title">${esc(b.title || types[b.type][1])}<small>${types[b.type][1]}</small></span><button class="icon-button" data-block-up="${b.id}" aria-label="Move block earlier">↑</button><button class="icon-button" data-block-down="${b.id}" aria-label="Move block later">↓</button></div>`).join('')}</div><div class="section-title">ADD A BLOCK</div>${blockLibraryMarkup(esc)}<p class="small-note">Drag a block by its dotted handle to reorder it. Drag a tile below onto the live preview to add it there.</p>`;
+    $('#left-content').innerHTML=`${project.pages.map((p,i)=>`<div class="page-item ${p.id===pageId?'active':''}"><button data-select-page="${p.id}">▱ &nbsp; ${esc(p.title)} ${i===0?'<small>HOME</small>':''}</button></div>`).join('')}<button id="add-page" class="wide-button">+ New page</button><label>Page title<input id="page-title" value="${esc(page().title)}"></label><label>Page URL<input id="page-slug" value="${esc(page().slug)}"></label><p class="small-note">The first page is your homepage.</p><div class="settings-row"><button id="page-up" ${project.pages.indexOf(page())===0?'disabled':''}>Move earlier</button><button id="remove-page" class="danger" ${project.pages.length===1?'disabled':''}>Delete page</button></div><div class="section-title">ON THIS PAGE <span>${page().blocks.length} BLOCKS</span></div><button id="undo-delete" class="wide-button" ${deletedBlocks.length?'':'disabled'}>Undo delete</button><div id="block-list">${page().blocks.map(b=>`<div draggable="true" data-block-id="${b.id}" class="block-item ${b.id===blockId?'selected':''}"><span class="drag-grip">⠿</span><span class="block-symbol">${types[b.type][0]}</span><span class="block-title">${esc(b.title || types[b.type][1])}<small>${types[b.type][1]}</small></span><button class="icon-button" data-block-up="${b.id}" aria-label="Move block earlier">↑</button><button class="icon-button" data-block-down="${b.id}" aria-label="Move block later">↓</button><button class="icon-button danger" data-block-delete="${b.id}" aria-label="Delete ${esc(types[b.type][1])} block" title="Delete block">×</button></div>`).join('')}</div><div class="section-title">ADD A BLOCK</div>${blockLibraryMarkup(esc)}<p class="small-note">Drag a block by its dotted handle to reorder it. Drag a tile below onto the live preview to add it there.</p>`;
     document.querySelectorAll('[data-select-page]').forEach(b=>b.onclick=()=>{pageId=b.dataset.selectPage;blockId=page().blocks[0]?.id;render();preview();});
+    $('#undo-delete').onclick=undoDelete;
+    document.querySelectorAll('[data-block-delete]').forEach(el=>el.onclick=e=>{e.stopPropagation();deleteBlock(el.dataset.blockDelete);});
     $('#add-page').onclick=()=>{const n=project.pages.length+1;const p={id:id(),title:'New page '+n,slug:'page-'+id().slice(0,8),blocks:[makeBlock('hero')]};project.pages.push(p);pageId=p.id;blockId=p.blocks[0].id;changed(true);};
     $('#page-title').oninput=e=>{page().title=e.target.value;changed();};
     $('#page-title').onchange=()=>{const button=document.querySelector(`[data-select-page="${pageId}"]`);button.innerHTML=`▱ &nbsp; ${esc(page().title)} ${project.pages[0].id===pageId?'<small>HOME</small>':''}`;};
@@ -83,7 +99,7 @@ function renderInspector(){
   document.querySelectorAll('[data-spread-up],[data-spread-down],[data-spread-delete]').forEach(el=>el.onclick=()=>{const i=+(el.dataset.spreadUp??el.dataset.spreadDown??el.dataset.spreadDelete);if(el.dataset.spreadDelete!==undefined)b.spreads.splice(i,1);else{const j=i+(el.dataset.spreadUp!==undefined?-1:1);[b.spreads[i],b.spreads[j]]=[b.spreads[j],b.spreads[i]];}changed();renderInspector();});
   $('#add-spread')?.addEventListener('click',()=>{b.spreads.push({id:id(),image:'',title:'',caption:'',background:'#faf7ef',hard:false,fit:'contain'});changed();renderInspector();});
   $('#duplicate').onclick=()=>{const clone=structuredClone(b);clone.id=id();clone.spreads.forEach(s=>s.id=id());page().blocks.splice(page().blocks.indexOf(b)+1,0,clone);blockId=clone.id;changed(true);};
-  $('#delete-block').onclick=()=>{page().blocks=page().blocks.filter(item=>item.id!==b.id);blockId=page().blocks[0]?.id;changed(true);};
+  $('#delete-block').onclick=()=>deleteBlock(b.id);
 }
 function extraInspector(b){
   return (BLOCKS[b.type].fields||[]).map(f=>`<label>${esc(f.label)}<input data-option="${f.key}" type="${f.type}" ${f.type==='checkbox'?(b[f.key]?'checked':''):`value="${esc(b[f.key])}"`}></label>`).join('')+
@@ -132,6 +148,7 @@ window.addEventListener('message',e=>{
   if(d.type==='item-action'&&b&&Array.isArray(b.items)){if(d.action==='add')b.items.push({title:'',text:'',url:''});if(d.action==='remove'&&Number.isInteger(d.index)&&d.index>=0&&d.index<b.items.length){b.items.splice(d.index,1);if(b.type==='cards')b.images.splice(d.index,1);}changed(true);}
   if(d.type==='resize-image'&&b&&resizeImage(b,d.width,d.height))changed(true);
   if(d.type==='block-action'&&b){
+    if(d.action==='delete'){deleteBlock(b.id);return;}
     blockId=b.id;
     const i=page().blocks.indexOf(b);
     if(d.action==='up'&&i>0)[page().blocks[i-1],page().blocks[i]]=[b,page().blocks[i-1]];

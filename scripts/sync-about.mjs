@@ -62,7 +62,7 @@ export async function syncAbout(check=false){
   }
   for(const lib of about.libraries){if(deps[lib.package]){if(check&&lib.version!==deps[lib.package])throw new Error('About version is stale: '+lib.package);lib.version=deps[lib.package];}}
   const inventory=check?await readJson('shared/dependencies.json'):await installedInventory();
-  const readme=await readFile(path.join(root,'README.md'),'utf8');
+  const readme=(await readFile(path.join(root,'README.md'),'utf8')).replaceAll('\r\n','\n');
   const next=replaceAboutSection(readme,renderAboutMarkdown(about,inventory));
   if(check){if(next!==readme)throw new Error('About and README are out of sync. Run node scripts/sync-about.mjs.');}
   else{await writeFile(path.join(root,'shared/about.json'),JSON.stringify(about,null,2)+'\n');await writeFile(path.join(root,'shared/dependencies.json'),JSON.stringify(inventory,null,2)+'\n');await writeFile(path.join(root,'README.md'),next);}

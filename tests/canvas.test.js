@@ -1,8 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { editText, resizeImage, assignArtwork } from '../ui/canvas-model.js';
+import { editText, resizeImage, assignArtwork, removeBlock, restoreBlock } from '../ui/canvas-model.js';
 import { portfolioMarkup } from '../shared/render.js';
 import { BLOCKS, safeUrl, videoEmbed } from '../shared/blocks.js';
+test('block deletion and undo preserve order, sketchbook pages and artwork references',()=>{
+  const page={blocks:[{id:'one'},{id:'book',spreads:[{id:'sheet',image:'art',caption:'Original'}],styles:{paperTexture:'cotton'}},{id:'three'}]};
+  const snapshot=structuredClone(page),removed=removeBlock(page,'book');assert.deepEqual(page.blocks.map(b=>b.id),['one','three']);
+  assert.equal(restoreBlock(page,removed),true);assert.deepEqual(page,snapshot);assert.equal(restoreBlock(page,removed),false);
+  assert.equal(removeBlock(page,'missing'),null);
+  const only={blocks:[{id:'only'}]},last=removeBlock(only,'only');assert.equal(only.blocks.length,0);assert.equal(restoreBlock(only,last),true);
+  assert.equal(restoreBlock({blocks:Array.from({length:200},(_,i)=>({id:String(i)}))},last),false);
+});
 
 test('inline edits target the correct sketchbook page and keep text literal in exports', () => {
   const b={id:'book',type:'sketchbook',title:'Book',label:'',spreads:[{id:'one',title:'One',caption:'',background:'#ffffff'},{id:'two',title:'Two',caption:'',background:'#ffffff'}]};

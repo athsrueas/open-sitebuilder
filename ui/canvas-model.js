@@ -1,4 +1,12 @@
 // Apply canvas changes to the same project model used by the inspector and export.
+export function removeBlock(page,blockId){
+  const index=page.blocks.findIndex(b=>b.id===blockId);if(index<0)return null;
+  const block=structuredClone(page.blocks[index]);page.blocks.splice(index,1);return {block,index};
+}
+export function restoreBlock(page,removed){
+  if(!removed||page.blocks.length>=200||page.blocks.some(b=>b.id===removed.block.id))return false;
+  page.blocks.splice(Math.min(removed.index,page.blocks.length),0,structuredClone(removed.block));return true;
+}
 export function editText(block, spreadId, field, value, itemIndex) {
   if(typeof value!=='string'||value.length>20000)return false;
   if(field.startsWith('cell:')&&block.type==='table'){
