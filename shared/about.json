@@ -6,8 +6,8 @@
     {
       "date": "2026-10-02",
       "title": "Valid style inputs and automatic session recovery",
-      "description": "Keep numeric styles within their supported limits and steps, restore incomplete entries safely, show allowed ranges, and renew rotated local sessions without discarding unsaved edits.",
-      "commit": "e3e92d1203278dc8d173bd1b6741a9fdcc2504e9"
+      "description": "Immediately clamp excessive numeric style entries, show allowed limits and steps, restore incomplete entries safely, and renew rotated local sessions without discarding unsaved edits.",
+      "commit": "ac96a93d8373ac1338399da11a7819b4d5dfc11a"
     },
     {
       "date": "2026-10-02",
