@@ -96,6 +96,7 @@ def load_project():
 def valid_url(value, media=False):
     if not isinstance(value, str): return False
     if any(c.isspace() for c in value) or '\\' in value: return False
+    if not media and (re.fullmatch(r'folio:page:[a-f0-9]{32}(?::block:[a-f0-9]{32})?', value) or re.fullmatch(r'#[a-zA-Z0-9_-]+', value)): return True
     if not media and value.startswith('/') and not value.startswith('//'): return True
     parsed = urllib.parse.urlparse(value)
     return parsed.scheme == 'https' and bool(parsed.netloc)
@@ -152,6 +153,8 @@ def validate_project(p):
     for page in pages:
         check_id(page.get('id'))
         check_text(page, ('title', 'slug'))
+        if 'hideFromNavigation' in page and not isinstance(page['hideFromNavigation'], bool):
+            raise ValueError('Invalid page navigation visibility.')
         if not SLUG.fullmatch(page['slug']) or page['slug'] in slugs or page['slug'] in ('media', '_astro', 'folio-assets'):
             raise ValueError('Page URLs must be unique lowercase words separated by hyphens.')
         slugs.add(page['slug'])

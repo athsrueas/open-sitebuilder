@@ -14,6 +14,26 @@ import server
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_internal_destinations_and_fragments_are_navigation_only(self):
+        ref='folio:page:'+('a'*32)+':block:'+('b'*32)
+        for value in (ref, '#block-'+('b'*32), '/statement/#section'):
+            self.assertTrue(server.valid_url(value))
+            self.assertFalse(server.valid_url(value, media=True))
+        for value in ('folio:page:bad', '#bad space', 'javascript:alert(1)'):
+            self.assertFalse(server.valid_url(value))
+        project=server.default_project()
+        project['pages'][0]['blocks'][0].update(type='button',url=ref,buttonText='Read statement')
+        server.validate_project(project)
+
+    def test_page_navigation_visibility_is_optional_and_boolean(self):
+        project=server.default_project()
+        for value in (True, False):
+            project['pages'][0]['hideFromNavigation']=value
+            server.validate_project(project)
+        project['pages'][0]['hideFromNavigation']='true'
+        with self.assertRaisesRegex(ValueError, 'navigation visibility'):
+            server.validate_project(project)
+
     def test_sketchbook_fill_page_is_optional_and_boolean(self):
         project=server.default_project()
         spread=project['pages'][0]['blocks'][1]['spreads'][0]

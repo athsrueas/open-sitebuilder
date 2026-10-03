@@ -1,3 +1,4 @@
+import {linkControlMarkup,wireLinkControls} from '/ui/link-controls.js';
 import {wireFreeLayout,freeEditorCss} from '/ui/free-layout-editor.js';
 import {measure} from '/ui/diagnostics.js';
 import {materialTextureCss} from '/shared/materials.js';
@@ -13,7 +14,7 @@ const root = document.querySelector('#portfolio');
 window.matchMedia('(max-width:650px)').addEventListener('change',e=>root.querySelectorAll(e.matches?'[data-mobile-preview]':'[data-mode=desktop]').forEach(button=>button.click()));
 let sections = new Map();
 const styleContexts=new WeakMap(),stylePanels=new WeakMap();
-let selectedBlockId;
+let selectedBlockId,destinationSignature='',destinationRevision=0;
 let pendingRender;
 let uploadTarget={};
 const editorStyle = document.createElement('style');
@@ -32,7 +33,7 @@ editorStyle.textContent += `
   [contenteditable]:empty::after{content:attr(data-placeholder);opacity:.45}
   .canvas-tools{position:sticky;top:0;z-index:10000;background:#ffffff;border-bottom:1px solid #cccccc;padding:10px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:12px Arial,sans-serif;color:#111111}
   .canvas-library{position:relative}.canvas-library summary{cursor:pointer;padding:8px;border:1px solid #cccccc;border-radius:0}.canvas-library>.block-library{position:absolute;right:0;top:35px;width:320px;max-height:65vh;overflow:auto;background:#ffffff;padding:15px;box-shadow:0 10px 30px #0002}.block-group{border-top:1px solid #cccccc;padding:12px 0}.block-group summary{cursor:pointer}.block-group small{float:right}.palette{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.palette button{min-height:55px;text-align:left}.palette button span{display:block;margin-bottom:6px}.block-search{width:100%;padding:8px;border:1px solid #cccccc;margin-bottom:12px}button[hidden],details[hidden],p[hidden]{display:none}
-  .canvas-options,.item-options{display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#ffffff;padding:12px;margin-top:15px;border:1px solid #cccccc}.canvas-options label,.item-options label{display:flex;flex-direction:column;gap:6px}.canvas-options input,.item-options input,.canvas-styles input,.canvas-styles select{padding:8px;border:1px solid #cccccc;background:white;color:#111111;min-width:180px}.canvas-options input[type=checkbox]{min-width:0}.add-item{margin-top:15px;padding:8px;cursor:pointer}.link-edit-label{display:inline!important}.link-list [data-item-index]>a{display:none}.folio-spacer{border:1px dashed #cccccc}
+  .link-control{width:100%;min-width:0}.link-control select,.link-control input[data-link-url]{width:100%;max-width:100%;min-width:0}.link-control .small-note{font:12px Arial,sans-serif;line-height:1.5;max-width:700px;overflow-wrap:anywhere}.link-control [hidden]{display:none!important}.canvas-options,.item-options{display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#ffffff;padding:12px;margin-top:15px;border:1px solid #cccccc}.canvas-options label,.item-options label{display:flex;flex-direction:column;gap:6px}.canvas-options input,.item-options input,.canvas-styles input,.canvas-styles select{padding:8px;border:1px solid #cccccc;background:white;color:#111111;min-width:180px}.canvas-options input[type=checkbox]{min-width:0}.add-item{margin-top:15px;padding:8px;cursor:pointer}.link-edit-label{display:inline!important}.link-list [data-item-index]>a{display:none}.folio-spacer{border:1px dashed #cccccc}
   .canvas-tools span{margin-right:auto;color:#111111;font-size:11px}
   .editor-chrome{font:11px Arial,sans-serif;color:#111111;letter-spacing:0;text-transform:none}
   .editor-chrome button,.canvas-tools button{font:11px Arial,sans-serif;color:#111111;background:#ffffff;border:1px solid #cccccc;padding:7px 9px;border-radius:0;cursor:pointer}
@@ -73,10 +74,12 @@ function render(data) {
   pendingRender=null;
   const openStyles=[...root.querySelectorAll('.canvas-styles[open]')].map(el=>({id:el.closest('[data-block]').dataset.block,groups:[...el.querySelectorAll('.style-group[open]')].map(g=>g.dataset.styleGroup)}));
   const scroll = window.scrollY;
+  const destinations=JSON.stringify(data.project.pages.map(p=>({id:p.id,title:p.title,slug:p.slug,blocks:p.blocks.map(b=>({id:b.id,title:b.title,type:b.type}))})));
+  if(destinations!==destinationSignature){destinationSignature=destinations;destinationRevision++;}
   const signatures=new Map(),assets=new Map(data.project.assets.map(a=>[a.id,a]));
   const markup = portfolioMarkup(data.project, data.pageId,{reuseBlock:b=>{
     const ids=new Set([...(b.images||[]),...(b.spreads||[]).map(s=>s.image),...(b.layers||[]).map(l=>l.assetId)]);
-    const signature=JSON.stringify({block:b,assets:[...ids].map(id=>assets.get(id))});signatures.set(b.id,signature);
+    const signature=JSON.stringify({destinations:['cards','button','download','links','social'].includes(b.type)?destinationRevision:undefined,block:b,assets:[...ids].map(id=>assets.get(id))});signatures.set(b.id,signature);
     return sections.get(b.id)?.signature===signature?`<section data-block="${b.id}"></section>`:null;
   }});
   const container = document.createElement('div');
@@ -101,7 +104,7 @@ function render(data) {
   const style = document.createElement('style');
   style.textContent = markup.css;
   root.replaceChildren(style, container);
-  decorate(container, page, data.project.theme);
+  decorate(container, page, data.project.theme,data.project);
   for(const {id,groups} of openStyles){const el=container.querySelector(`[data-block="${id}"] .canvas-styles`);if(el){el.open=true;stylePanels.get(el.closest("[data-block]"))?.(groups);}}
   for (const item of next.values()) {
     if (!item.cleanup) item.cleanup = initPortfolio(item.node, window.St?.PageFlip);
@@ -166,7 +169,7 @@ document.addEventListener('drop',e=>{
 document.addEventListener('dragleave',e=>{if(!e.relatedTarget)clearDrop();});
 document.addEventListener('dragend',clearDrop);
 
-function decorate(container,page,theme){
+function decorate(container,page,theme,project){
   container.querySelectorAll('[data-project-edit]').forEach(el=>{el.contentEditable='true';el.setAttribute('role','textbox');el.setAttribute('aria-label',el.dataset.projectEdit==='name'?'Artist name on page':'Portfolio description on page');});
   for(const b of page.blocks){
     const section=container.querySelector(`[data-block="${b.id}"]`);
@@ -214,7 +217,8 @@ function decorate(container,page,theme){
     const fields=BLOCKS[b.type]?.fields||[];
     if(fields.length){
       const settings=document.createElement('div');settings.className='editor-chrome canvas-options';
-      settings.innerHTML=fields.map(f=>`<label>${esc(f.label)}<input data-option="${f.key}" type="${f.type}" ${f.type==='checkbox'?(b[f.key]?'checked':''):`value="${esc(b[f.key]??'')}"`}></label>`).join('');
+      settings.innerHTML=fields.map(f=>f.key==='url'&&!['video','audio'].includes(b.type)?linkControlMarkup(project,b.url,b.type):`<label>${esc(f.label)}<input data-option="${f.key}" type="${f.type}" ${f.type==='checkbox'?(b[f.key]?'checked':''):`value="${esc(b[f.key]??'')}"`}></label>`).join('');
+      wireLinkControls(settings,project,(_,value,inline)=>send({type:'set-option',blockId:b.id,key:'url',value,inline}));
       settings.querySelectorAll('[data-option]').forEach(input=>{const update=inline=>send({type:'set-option',blockId:b.id,key:input.dataset.option,value:input.type==='checkbox'?input.checked:input.value,inline});input.oninput=()=>update(true);input.onchange=()=>update(false);});
       section.append(settings);
     }
@@ -222,8 +226,8 @@ function decorate(container,page,theme){
       section.querySelectorAll('[data-item-index]').forEach(item=>{
         const i=Number(item.dataset.itemIndex),controls=document.createElement('div');controls.className='editor-chrome item-options';
         if(['cards','links','social'].includes(b.type)){
-          controls.innerHTML=`<label>Link URL<input type="text" aria-label="Item link URL" value="${esc(b.items[i].url)}" placeholder="https://… or /page/"></label>`;
-          const urlInput=controls.querySelector('input');const update=inline=>send({type:'item-link',blockId:b.id,index:i,value:urlInput.value,inline});urlInput.oninput=()=>update(true);urlInput.onchange=()=>update(false);
+          controls.innerHTML=linkControlMarkup(project,b.items[i].url,b.type);
+          wireLinkControls(controls,project,(_,value,inline)=>send({type:'item-link',blockId:b.id,index:i,value,inline}));
         }
         if(b.type==='cards'){const photo=document.createElement('button');photo.textContent='Add / replace photo';photo.onclick=()=>choosePhotos({blockId:b.id,itemIndex:i});controls.append(photo);}
         const remove=document.createElement('button');remove.textContent='Remove item';remove.onclick=()=>send({type:'item-action',blockId:b.id,action:'remove',index:i});controls.append(remove);item.append(controls);

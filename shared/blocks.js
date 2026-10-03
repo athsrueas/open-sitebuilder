@@ -1,3 +1,4 @@
+import {INTERNAL_LINK} from './links.js';
 import blocks from './blocks.json' with { type: 'json' };
 export const BLOCKS = blocks;
 export const GROUPS = [...new Set(Object.values(blocks).map(b => b.group))];
@@ -5,6 +6,7 @@ export const IMAGE_TYPES = ['image','imageText','cover','gallery','carousel','ca
 export const SINGLE_IMAGE_TYPES = ['image','imageText','cover'];
 export function safeUrl(value, media=false) {
   const text=String(value??'').trim();
+  if (!media && (INTERNAL_LINK.test(text)||/^#[a-zA-Z0-9_-]+$/.test(text)))return text;
   if (!media && /^\/(?!\/)[^\s\\]*$/.test(text)) return text;
   try { const url=new URL(text);return url.protocol==='https:' ? url.href : ''; }
   catch { return ''; }

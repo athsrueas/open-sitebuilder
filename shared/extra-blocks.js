@@ -1,16 +1,17 @@
+import {resolveLink} from './links.js';
 import {freeLayoutMarkup,freeLayoutCss} from './free-layout.js';
 import { safeUrl, videoEmbed } from './blocks.js';
 export function extraBlockMarkup(b, project, {esc,image}) {
   const title=`<div class="eyebrow" data-edit="label">${esc(b.label)}</div><h2 data-edit="title">${esc(b.title)}</h2>`;
   const text=`<p data-edit="text">${esc(b.text)}</p>`;
-  const link=(url,label,cls='')=>{const href=safeUrl(url);return href?`<a class="${cls}" href="${esc(href)}">${esc(label)}</a>`:`<span class="${cls}">${esc(label)}</span>`;};
+  const link=(url,label,cls='')=>{const href=safeUrl(resolveLink(url,project));return href?`<a class="${cls}" href="${esc(href)}">${esc(label)}</a>`:`<span class="${cls}">${esc(label)}</span>`;};
   const items=(b.items||[]).map((item,i)=>{
     const heading=`<span data-edit="title">${esc(item.title)}</span>`;
     const body=`<p data-edit="text">${esc(item.text)}</p>`;
     const attr=`data-item-index="${i}"`;
     if(b.type==='accordion')return `<details ${attr}><summary>${heading}</summary>${body}</details>`;
     if(['links','social'].includes(b.type))return `<li ${attr}>${link(item.url,item.title)}<span data-edit="title" class="link-edit-label">${esc(item.title)}</span></li>`;
-    if(b.type==='cards')return `<article ${attr}>${image(b.images[i],project,b.fit)}<h3>${heading}</h3>${body}${item.url?link(item.url,'View artwork','folio-button'):''}</article>`;
+    if(b.type==='cards')return `<article ${attr}>${image(b.images[i],project,b.fit,safeUrl(resolveLink(item.url,project)))}<h3>${heading}</h3>${body}${item.url?link(item.url,'View artwork','folio-button'):''}</article>`;
     return `<article ${attr}><h3>${heading}</h3>${body}</article>`;
   }).join('');
   switch(b.type){

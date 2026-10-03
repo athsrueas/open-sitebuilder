@@ -46,6 +46,20 @@ This is a deterrent, not copy protection. Displayed web images can still be retr
 
 New sketchbooks start with four pages. There is no fixed page-count limit: use **+ Add sketchbook page** on the canvas toolbar or in **Details**. Each page has independent artwork, title, caption, paper color, image fit and cover settings. Enable **Fill page** directly on a sketchbook page, or **Fill page with artwork** in Details, to use edge-to-edge artwork with cropping and hide the page title, caption and number. Text is preserved and reappears when switched off. Reorder or delete pages in Details. At least two pages are needed for page flipping. Very large sketchbooks are still constrained by browser memory and the general 60 MB project-save request limit; photos are uploaded separately.
 
+## Links and page addresses
+
+Link controls explain what visitors can click and where it takes them. For artwork cards, the image and **View artwork** button share the configured destination. With no destination, no navigation button appears and the image keeps its normal artwork-viewing behavior. Links open in the same tab; artwork viewing opens separately when enabled. Test navigation using the built site preview, since canvas clicks select content for editing.
+
+In the canvas or **Details**, choose **Link destination → Page: Artist statement** (or another page). Leave **Jump to a block** at **Whole page (top)** to open the page, or select a named block to jump directly to that section. Internal destinations track page and block identities, so changing the page URL or reordering pages/blocks updates the resulting address automatically. Deleted destinations are flagged in the editor and export without a broken navigation link. Duplicating a block gives the copy its own shortcut; existing links keep pointing to the original.
+
+Choose **Website address or custom link** for an HTTPS website or hosted file, a manual `/page/` path, or a `#shortcut`. Manual addresses do not track renames. Every block's shortcut is shown in Details. Buttons, artwork cards, link lists, social links and file-link blocks use the same destination controls; video/audio URLs remain media sources.
+
+**Show in site navigation** controls whether a page appears in the site menu. Turn it off for pages reached through cards, buttons or direct links. Hidden pages remain in the editor and all destination selectors, still build normally, and are accessible at their URL. This setting does not make a page private.
+
+**Page URL name** expects only a name such as `artist-statement`, not a full address. Its address preview shows `/artist-statement/` on the configured Pages hostname, or an example domain before configuration. A custom domain uses the same path: `https://gallery.mirandafreestone.com/artist-statement/`. The first page is the homepage at `/`, regardless of its URL name. URL names must be unique lowercase words separated by hyphens.
+
+Internal references resolve to ordinary links and section IDs during the Astro build. Visitors receive no link picker, project catalogue or routing library.
+
 ## Media management and image editing
 
 Open **Media** for the dedicated import and management screen. Import several JPEG/PNG/WebP images, search names and descriptions, edit file names and alt text, view image versions, download original files, add images to the current page, and archive/restore library entries. Archive hides an image without deleting it or breaking existing pages. **Show in File Explorer** opens Windows Explorer with the original upload selected. **Delete image** removes the selected image and its page placements, preserves other edited versions, and sends original/processed/generated copies to the Windows Recycle Bin after confirmation. If recycling is unavailable, recovery files stay in `data/trash` and the editor shows that location. Existing live deployments change only after publishing again.

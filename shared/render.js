@@ -1,3 +1,4 @@
+import {blockAnchor,pagePath} from './links.js';
 import {pageFeatures,publishedLayers,cleanPublishedHtml,prunePublishedCss} from './published.js';
 import {initPortfolio} from './runtime.js';
 export {initPortfolio} from './runtime.js';
@@ -7,11 +8,12 @@ import { extraBlockMarkup, extraBlockCss } from './extra-blocks.js';
 export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeColor = v => /^#[0-9a-f]{6}$/i.test(v) ? v : '#f3eee5';
 const assetIndexes=new WeakMap();
-const image = (id, project, fit='contain') => {
+const image = (id, project, fit='contain',destination='') => {
   let index=assetIndexes.get(project.assets);if(!index||index.size!==project.assets.length){index=new Map(project.assets.map(a=>[a.id,a]));assetIndexes.set(project.assets,index);}
   const asset = index.get(id);
   const widths=new Set(),srcset=asset?[['thumb',480],['medium',1200],['src',2400]].filter(([key])=>asset[key]).map(([key,size])=>{const width=Math.round(asset.width*Math.min(1,size/Math.max(asset.width,asset.height)));if(!width||widths.has(width))return '';widths.add(width);return `${asset[key]} ${width}w`;}).filter(Boolean).join(', '):'';
-  return asset ? `<${project.discourageImageDownloads?'span':'a'} class="artwork-view" ${project.discourageImageDownloads?'':`href="${escapeHtml(asset.full)}" target="_blank" rel="noopener"`}><img data-asset-id="${escapeHtml(asset.id)}" src="${escapeHtml(asset.src)}" alt="${escapeHtml(asset.alt)}" loading="lazy" decoding="async" ${asset.width&&asset.height?`width="${asset.width}" height="${asset.height}"`:''} ${srcset?`srcset="${escapeHtml(srcset)}" sizes="(max-width:600px) 100vw, 1000px"`:''} style="object-fit:${fit === 'cover' ? 'cover':'contain'}" draggable="false" /></${project.discourageImageDownloads?'span':'a'}>` : '<div class="image-placeholder">Add artwork to this block</div>';
+  const protectedArtwork=project.discourageImageDownloads&&!destination;
+  return asset ? `<${protectedArtwork?'span':'a'} class="artwork-view" ${protectedArtwork?'':`href="${escapeHtml(destination||asset.full)}" ${destination?'':'target="_blank" rel="noopener"'}`} ><img data-asset-id="${escapeHtml(asset.id)}" src="${escapeHtml(asset.src)}" alt="${escapeHtml(asset.alt)}" loading="lazy" decoding="async" ${asset.width&&asset.height?`width="${asset.width}" height="${asset.height}"`:''} ${srcset?`srcset="${escapeHtml(srcset)}" sizes="(max-width:600px) 100vw, 1000px"`:''} style="object-fit:${fit === 'cover' ? 'cover':'contain'}" draggable="false" /></${protectedArtwork?'span':'a'}>` : '<div class="image-placeholder">Add artwork to this block</div>';
 };
 export function portfolioMarkup(project, pageId, options={}) {
   const page = project.pages.find(p => p.id === pageId) || project.pages[0];
@@ -33,7 +35,7 @@ export function portfolioMarkup(project, pageId, options={}) {
     .splash-page p:empty,.splash-page .eyebrow:empty{display:none}
     .splash-page .ink-wash i{width:85%;left:-28%;top:-40%}.splash-page .ink-wash i:nth-child(2){width:85%;left:50%;top:18%}.splash-page .ink-wash i:nth-child(3){width:50%;left:28%;top:72%}
   `:'');
-  let html = (options.published?publishedDefs(features.materials):materialDefs)+(splash?'':`<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map((p,i) => `<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${i===0?'/':'/'+p.slug+'/'}">${escapeHtml(p.title)}</a>`).join('')}</nav></header>`)+`<main${splash?' class="splash-page"':''}>${page.blocks.map((b,blockIndex) => {
+  let html = (options.published?publishedDefs(features.materials):materialDefs)+(splash?'':`<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map(p => p.hideFromNavigation?'':`<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${pagePath(project,p)}">${escapeHtml(p.title)}</a>`).join('')}</nav></header>`)+`<main${splash?' class="splash-page"':''}>${page.blocks.map((b,blockIndex) => {
     const reused=options.reuseBlock?.(b);if(reused)return reused;
     const heading = `<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div><h2 data-edit="title">${escapeHtml(b.title)}</h2>`;
     let content = extraBlockMarkup(b,project,{esc:escapeHtml,image});
@@ -43,7 +45,7 @@ export function portfolioMarkup(project, pageId, options={}) {
     if(b.type==='gallery'||b.type==='carousel') content=heading+`<div class="${b.type}">${b.images.map(id=>`<figure>${image(id,project,b.fit)}</figure>`).join('') || '<div class="image-placeholder">Add images in the editor</div>'}</div>`;
     if(b.type==='divider') content='<hr class="rule" />';
     if(b.type==='sketchbook') content=heading+`<div class="book-wrap"><div class="book" data-book="${b.id}">${b.spreads.map((s,i)=>`<div class="book-page${s.fillPage?' book-page-fill':''}" data-spread-id="${s.id}" style="--paper:${safeColor(s.background)}" data-density="${s.hard?'hard':'soft'}">${image(s.image,project,s.fillPage?'cover':s.fit)}${s.fillPage?'':`<h3 data-edit="title">${escapeHtml(s.title)}</h3><p data-edit="caption">${escapeHtml(s.caption)}</p><span class="caption">${i+1}</span>`}</div>`).join('')}</div><div class="book-controls"><button data-prev="${b.id}" aria-label="Previous sketchbook page">← Previous</button><span data-count="${b.id}"></span><button data-next="${b.id}" aria-label="Next sketchbook page">Next →</button></div></div>`;
-    return `<section class="folio-block" ${features.materials[blockIndex].paperMotion==='soft-light'||['bloom','drift'].includes(features.materials[blockIndex].inkWash)?'data-material-motion="true"':''} data-block="${b.id}" style="${escapeHtml(styleVars(b.styles,true))}">${options.published?publishedLayers(features.materials[blockIndex]):materialLayers}${content}</section>`;
+    return `<section id="${blockAnchor(b)}" class="folio-block" ${features.materials[blockIndex].paperMotion==='soft-light'||['bloom','drift'].includes(features.materials[blockIndex].inkWash)?'data-material-motion="true"':''} data-block="${b.id}" style="${escapeHtml(styleVars(b.styles,true))}">${options.published?publishedLayers(features.materials[blockIndex]):materialLayers}${content}</section>`;
   }).join('')}</main>`+(splash?'':`<footer>${escapeHtml(project.name)}${project.description ? " · " : ""}<span data-project-edit="description">${escapeHtml(project.description)}</span></footer>`);
   if(options.published){html=cleanPublishedHtml(html);return {css:prunePublishedCss(styledCss,html),html,features};}
   return { css:styledCss, html,features };
