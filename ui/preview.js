@@ -176,6 +176,10 @@ function decorate(container,page,theme){
     toolbar.innerHTML='<button class="grip" draggable="true" aria-label="Drag block">⠿</button><button data-action="up" aria-label="Move block up">↑</button><button data-action="down" aria-label="Move block down">↓</button><button data-action="duplicate">Duplicate</button><button data-action="delete" aria-label="Delete block">Delete</button>';
     toolbar.querySelector('.grip').ondragstart=e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','block:'+b.id);};
     toolbar.onclick=e=>{if(e.target.dataset.action)send({type:'block-action',blockId:b.id,action:e.target.dataset.action});};
+    if(b.type==='sketchbook'){
+      const add=document.createElement('button');add.textContent='+ Add sketchbook page';add.dataset.action='add-spread';toolbar.append(add);
+      const count=document.createElement('span');count.textContent=b.spreads.length+' pages';toolbar.append(count);
+    }
     if(IMAGE_TYPES.includes(b.type)){
       const photo=document.createElement('button');photo.textContent=SINGLE_IMAGE_TYPES.includes(b.type)?'Replace photo':'Add photos';photo.onclick=()=>choosePhotos({blockId:b.id});toolbar.append(photo);
       const fit=document.createElement('button');fit.textContent=b.fit==='cover'?'Show whole photo':'Crop to fill';fit.onclick=()=>send({type:'block-action',blockId:b.id,action:'fit'});toolbar.append(fit);

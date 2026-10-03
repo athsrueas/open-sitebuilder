@@ -14,6 +14,16 @@ import server
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_sketchbooks_accept_more_than_200_pages_and_validate_every_page(self):
+        project = server.default_project()
+        book = project['pages'][0]['blocks'][1]
+        template = book['spreads'][0]
+        book['spreads'] = [dict(template, id=server.identifier(), title=f'Page {i+1}') for i in range(1000)]
+        server.validate_project(project)
+        book['spreads'][-1]['image'] = 'missing'
+        with self.assertRaisesRegex(ValueError, 'image'):
+            server.validate_project(project)
+
     def test_free_layout_bounds_and_mobile_validation(self):
         project=server.default_project()
         b=project['pages'][0]['blocks'][0]

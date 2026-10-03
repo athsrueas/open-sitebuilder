@@ -206,8 +206,8 @@ def validate_project(p):
                     raise ValueError('Invalid image size.')
             if not isinstance(block.get('images'), list) or any(i not in assets and not (block['type']=='cards' and i=='') for i in block['images']):
                 raise ValueError('Unknown image.')
-            if not isinstance(block.get('spreads'), list) or len(block['spreads']) > 200:
-                raise ValueError('Too many sketchbook pages.')
+            if not isinstance(block.get('spreads'), list):
+                raise ValueError('Invalid sketchbook pages.')
             for spread in block['spreads']:
                 check_id(spread.get('id'))
                 check_text(spread, ('title', 'caption'))

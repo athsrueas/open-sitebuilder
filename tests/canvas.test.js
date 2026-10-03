@@ -29,6 +29,14 @@ test('photo assignment replaces a single photo and appends unique gallery photos
   b.type='sketchbook';b.spreads=[{id:'one',image:''},{id:'two',image:''}];
   assert.equal(assignArtwork(b,['scan'],'two'),true);assert.equal(b.spreads[1].image,'scan');assert.equal(b.spreads[0].image,'');
 });
+test('large sketchbooks export every page in order without truncation',()=>{
+  const spreads=Array.from({length:1000},(_,i)=>({id:'sheet'+i,title:'Page '+(i+1),caption:'Caption '+(i+1),background:'#ffffff',fit:'contain',hard:false,image:''}));
+  const book={id:'book',type:'sketchbook',title:'Book',label:'',text:'',images:[],spreads,fit:'contain'};
+  const html=portfolioMarkup({name:'Artist',description:'',theme:{},assets:[],pages:[{id:'page',blocks:[book]}]},'page').html;
+  assert.equal((html.match(/class="book-page"/g)||[]).length,1000);
+  assert.ok(html.indexOf('data-spread-id="sheet999"')>html.indexOf('data-spread-id="sheet998"'));
+  assert.match(html,/Caption 1000/);
+});
 test('canvas image sizes are constrained and reach the generated site', () => {
   const b={id:'image',type:'image',text:'',images:[],spreads:[],fit:'contain'};
   assert.equal(resizeImage(b,65,420),true);

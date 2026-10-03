@@ -42,6 +42,10 @@ In **Settings → Artwork downloads**, enable **Discourage image downloads on th
 
 This is a deterrent, not copy protection. Displayed web images can still be retrieved, and a website cannot reliably prevent screenshots. Local originals remain untouched. See [image viewing and protection options](docs/IMAGE-PROTECTION.md) for thumbnail/lightbox, tiled zoom and private image delivery designs.
 
+## Sketchbooks
+
+New sketchbooks start with four pages. There is no fixed page-count limit: use **+ Add sketchbook page** on the canvas toolbar or in **Details**. Each page has independent artwork, title, caption, paper color, image fit and cover settings. Reorder or delete pages in Details. At least two pages are needed for page flipping. Very large sketchbooks are still constrained by browser memory and the general 60 MB project-save request limit; photos are uploaded separately.
+
 ## Media management and image editing
 
 Open **Media** for the dedicated import and management screen. Import several JPEG/PNG/WebP images, search names and descriptions, edit file names and alt text, view image versions, download original files, add images to the current page, and archive/restore library entries. Archive hides an image without deleting it or breaking existing pages. **Show in File Explorer** opens Windows Explorer with the original upload selected. **Delete image** removes the selected image and its page placements, preserves other edited versions, and sends original/processed/generated copies to the Windows Recycle Bin after confirmation. If recycling is unavailable, recovery files stay in `data/trash` and the editor shows that location. Existing live deployments change only after publishing again.
