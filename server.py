@@ -244,6 +244,92 @@ def start_job(action, project, config, token):
             JOB_LOCK.release()
     threading.Thread(target=work, daemon=True).start()
 
+def original_image_path(project, uid):
+    if not isinstance(uid, str) or not re.fullmatch(r'[a-f0-9]{32}', uid) or not any(a['id'] == uid for a in project['assets']):
+        raise ValueError('Unknown image.')
+    base = (DATA / 'originals').resolve()
+    if not base.is_relative_to(DATA.resolve()): raise ValueError('Invalid original folder.')
+    for extension in ('.jpg', '.png', '.webp'):
+        path = base / (uid + extension)
+        if path.is_file() and path.resolve().is_relative_to(base): return path
+    raise ValueError('Original file is unavailable.')
+
+
+def reveal_image(uid):
+    if os.name != 'nt': raise ValueError('Show in File Explorer is available on Windows.')
+    with LOCK:
+        path = original_image_path(load_project(), uid)
+    subprocess.Popen(['explorer.exe', '/select,', str(path)], creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+
+
+def recycle_media_folder(folder):
+    # Only a verified staging folder under this application's data can be recycled.
+    folder = folder.resolve()
+    trash = (DATA / 'trash').resolve()
+    if not folder.is_relative_to(DATA.resolve()) or not folder.is_relative_to(trash) or folder == trash:
+        raise ValueError('Invalid image recovery folder.')
+    if os.name != 'nt': return False
+    import ctypes
+    class FileOperation(ctypes.Structure):
+        _fields_ = [('hwnd', ctypes.c_void_p), ('operation', ctypes.c_uint), ('source', ctypes.c_void_p),
+                    ('destination', ctypes.c_void_p), ('flags', ctypes.c_ushort), ('aborted', ctypes.c_int),
+                    ('mappings', ctypes.c_void_p), ('title', ctypes.c_wchar_p)]
+    names = ctypes.create_unicode_buffer(str(folder) + '\0')
+    operation = FileOperation(operation=3, source=ctypes.cast(names, ctypes.c_void_p), flags=0x40 | 0x10 | 0x4 | 0x400)
+    api = ctypes.windll.shell32.SHFileOperationW
+    api.argtypes = [ctypes.POINTER(FileOperation)]; api.restype = ctypes.c_int
+    return api(ctypes.byref(operation)) == 0 and not operation.aborted
+
+
+def delete_media(uid):
+    if not isinstance(uid, str) or not re.fullmatch(r'[a-f0-9]{32}', uid): raise ValueError('Unknown image.')
+    if not JOB_LOCK.acquire(blocking=False): raise ValueError('Wait for the build or publish to finish before deleting images.')
+    try:
+        with LOCK:
+            project = load_project()
+            asset = next((a for a in project['assets'] if a['id'] == uid), None)
+            if not asset: raise ValueError('Unknown image.')
+            project['assets'] = [a for a in project['assets'] if a['id'] != uid]
+            for other in project['assets']:
+                if other.get('parentId') == uid: other.pop('parentId')
+            for page in project['pages']:
+                for block in page['blocks']:
+                    # Cards retain slots so captions/links stay attached to their neighbors.
+                    block['images'] = ['' if value == uid else value for value in block['images']] if block['type'] == 'cards' else [value for value in block['images'] if value != uid]
+                    for spread in block['spreads']:
+                        if spread['image'] == uid: spread['image'] = ''
+            validate_project(project)
+            folder = (DATA / 'trash' / ('image-' + uid + '-' + uuid.uuid4().hex)).resolve()
+            if not folder.is_relative_to(DATA.resolve()) or not folder.is_relative_to((DATA / 'trash').resolve()): raise ValueError('Invalid recovery folder.')
+            folder.mkdir(parents=True)
+            moved = []
+            try:
+                for base, names in ((DATA / 'originals', [uid + ext for ext in ('.jpg', '.png', '.webp')]),
+                                    *((base, [uid + suffix + '.webp' for suffix in ('', '-full', '-thumb', '-medium')]) for base in (DATA / 'media', ROOT / 'site/public/media', ROOT / 'site/dist/media'))):
+                    base = base.resolve()
+                    if not (base.is_relative_to(DATA.resolve()) or base.is_relative_to(ROOT.resolve())):
+                        raise ValueError('Invalid image storage folder.')
+                    for name in names:
+                        source = base / name
+                        if source.is_file() and source.resolve().is_relative_to(base):
+                            dest = folder / (str(len(moved)) + '-' + name)
+                            source.replace(dest); moved.append((source, dest))
+                atomic_json(folder / 'image.json', asset)
+                atomic_json(DATA / 'project.json', project)
+            except Exception:
+                for source, dest in reversed(moved):
+                    if dest.exists(): dest.replace(source)
+                raise
+            try:
+                recycled = recycle_media_folder(folder)
+            except Exception:
+                recycled = False  # Retain the recovery folder if the Windows shell is unavailable.
+            return {'project': project, 'recycled': recycled,
+                    'message': 'Image deleted. Local files moved to the Windows Recycle Bin.' if recycled else 'Image deleted. Recovery files are in ' + str(folder)}
+    finally:
+        JOB_LOCK.release()
+
+
 def ensure_image_variant(uid, size, suffix):
     """Small cached derivatives for existing imports as well as new images."""
     if not re.fullmatch(r'[a-f0-9]{32}', uid):
@@ -359,6 +445,12 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/api/upload':
                 return self.upload(body)
             value = json.loads(body)
+            if path == '/api/media/reveal':
+                reveal_image(value.get('id'))
+                return self.reply(200, {'ok': True})
+            if path == '/api/media/delete':
+                if value.get('confirmed') is not True: raise ValueError('Confirm image deletion first.')
+                return self.reply(200, delete_media(value.get('id')))
             if path == '/api/project':
                 with LOCK:
                     stored_assets = load_project()['assets']

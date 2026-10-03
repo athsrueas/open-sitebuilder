@@ -193,7 +193,8 @@ async function openImageEditor(assetId,context=null,onSaved=()=>{}){
     changed(true);await save();onSaved(edited);toast('Edited image saved as a new version.');
   }});
 }
-function mediaLibrary(){openMediaLibrary({getProject:()=>project,upload:async files=>{await upload(files);await save();},edit:openImageEditor,onChange:()=>changed(),addToPage:assetId=>{const b=makeBlock('image');b.images=[assetId];page().blocks.push(b);blockId=b.id;changed(true,true);}});}
+async function deleteImage(assetId){await save();const result=await api('media/delete',{id:assetId,confirmed:true});project=result.project;for(const {block:b} of deletedBlocks){b.images=b.type==='cards'?b.images.map(id=>id===assetId?'':id):b.images.filter(id=>id!==assetId);for(const spread of b.spreads)if(spread.image===assetId)spread.image='';}if(!page().blocks.some(b=>b.id===blockId))blockId=page().blocks[0]?.id;changed(true);return result;}
+function mediaLibrary(){openMediaLibrary({deleteImage,revealImage:assetId=>api('media/reveal',{id:assetId}),getProject:()=>project,upload:async files=>{await upload(files);await save();},edit:openImageEditor,onChange:()=>changed(),addToPage:assetId=>{const b=makeBlock('image');b.images=[assetId];page().blocks.push(b);blockId=b.id;changed(true,true);}});}
 $('#media-library').onclick=mediaLibrary;
 $('#details').onclick=()=>{const expanded=document.querySelector('.workspace').classList.toggle('show-details');$('#details').setAttribute('aria-expanded',String(expanded));};
 $('#desktop').onclick=()=>{ $('#preview').classList.remove('mobile');$('#desktop').classList.add('active');$('#mobile').classList.remove('active');};

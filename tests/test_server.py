@@ -121,6 +121,62 @@ class LocalApiTests(unittest.TestCase):
             catalogue = json.load(response)
         self.assertEqual(set(catalogue), set(server.BLOCKS))
 
+    def test_media_delete_removes_placements_and_files_but_keeps_versions(self):
+        buf = io.BytesIO(); Image.new('RGB', (40, 30), 'red').save(buf, format='PNG')
+        first = json.load(self.request('/api/upload', buf.getvalue()))
+        version = json.load(self.request('/api/upload', buf.getvalue(), headers={'X-Source-Asset': first['id']}))
+        p = server.load_project(); b = p['pages'][0]['blocks'][0]
+        b.update(type='cards', images=[first['id'], version['id']], items=[{'title':'First','text':'','url':''},{'title':'Second','text':'','url':''}])
+        book = p['pages'][0]['blocks'][1]; book['spreads'][0]['image'] = first['id']
+        self.request('/api/project', p).close()
+        with patch.object(server, 'recycle_media_folder', return_value=False):
+            result = json.load(self.request('/api/media/delete', {'id':first['id'],'confirmed':True}))
+        stored = server.load_project()
+        self.assertEqual([a['id'] for a in stored['assets']], [version['id']])
+        self.assertNotIn('parentId', stored['assets'][0])
+        self.assertEqual(stored['pages'][0]['blocks'][0]['images'], ['',version['id']])
+        self.assertEqual(stored['pages'][0]['blocks'][1]['spreads'][0]['image'], '')
+        self.assertFalse((server.DATA/'originals'/(first['id']+'.png')).exists())
+        self.assertFalse((server.DATA/'media'/(first['id']+'.webp')).exists())
+        self.assertTrue((server.DATA/'media'/(version['id']+'.webp')).exists())
+        self.assertEqual(len(list((server.DATA/'trash').glob('*/image.json'))), 1)
+        self.assertFalse(result['recycled']); server.validate_project(result['project'])
+        # A stale editor save cannot reintroduce the deleted image reference.
+        with self.assertRaises(urllib.error.HTTPError): self.request('/api/project', p)
+
+    def test_media_delete_requires_confirmation_and_rejects_paths(self):
+        for value in ({'id':'../project.json','confirmed':True},{'id':'a'*32,'confirmed':False}):
+            with self.assertRaises(urllib.error.HTTPError) as error: self.request('/api/media/delete', value)
+            self.assertEqual(error.exception.code, 400)
+        with self.assertRaises(ValueError): server.recycle_media_folder(server.DATA.parent)
+
+    def test_failed_media_project_write_restores_files(self):
+        buf = io.BytesIO(); Image.new('RGB', (20, 20), 'green').save(buf, format='PNG')
+        asset = json.load(self.request('/api/upload', buf.getvalue()))
+        original_write = server.atomic_json
+        def failing_write(path, value):
+            if path == server.DATA/'project.json': raise OSError('Test write failure')
+            return original_write(path, value)
+        with patch.object(server, 'atomic_json', side_effect=failing_write), patch.object(server, 'recycle_media_folder') as recycle:
+            with self.assertRaises(urllib.error.HTTPError): self.request('/api/media/delete', {'id':asset['id'],'confirmed':True})
+            recycle.assert_not_called()
+        self.assertEqual(server.load_project()['assets'][0]['id'], asset['id'])
+        self.assertTrue((server.DATA/'originals'/(asset['id']+'.png')).exists())
+        self.assertTrue((server.DATA/'media'/(asset['id']+'.webp')).exists())
+
+    @unittest.skipUnless(server.os.name == 'nt', 'Windows Explorer integration')
+    def test_media_reveal_selects_validated_original_without_shell(self):
+        buf = io.BytesIO(); Image.new('RGB', (20, 20), 'blue').save(buf, format='PNG')
+        asset = json.load(self.request('/api/upload', buf.getvalue()))
+        with patch.object(server.subprocess, 'Popen') as launch:
+            self.request('/api/media/reveal', {'id':asset['id']}).close()
+            args = launch.call_args.args[0]
+            self.assertEqual(args[:2], ['explorer.exe','/select,'])
+            self.assertEqual(Path(args[2]), (server.DATA/'originals'/(asset['id']+'.png')).resolve())
+            self.assertNotIn('shell', launch.call_args.kwargs)
+            with self.assertRaises(urllib.error.HTTPError): self.request('/api/media/reveal', {'id':'../project.json'})
+            self.assertEqual(launch.call_count, 1)
+
     def test_write_requires_session_and_read_rejects_foreign_host(self):
         with self.assertRaises(urllib.error.HTTPError) as error:
             self.request('/api/project', server.default_project(), token=False)
