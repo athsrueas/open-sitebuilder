@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Valid style inputs and automatic session recovery",
+      "description": "Keep numeric styles within their supported limits and steps, restore incomplete entries safely, show allowed ranges, and renew rotated local sessions without discarding unsaved edits.",
+      "commit": "e3e92d1203278dc8d173bd1b6741a9fdcc2504e9"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Application updates and artwork download controls",
       "description": "Check for new application versions, update installed copies with preserved data and code backups, and optionally remove full-size artwork links and discourage saving on published pages. Documents expanded-viewer and tiled-zoom alternatives and screenshot limits.",
       "commit": "93c881d9b6a13aca8eae757365cdb5a6975bc222"
