@@ -1,4 +1,5 @@
 import {newLayer,validLayers} from '/shared/free-layout.js';
+import {createApiClient} from '/ui/api-client.js';
 import {measure} from '/ui/diagnostics.js';
 let imageEditorModule;
 import {openMediaLibrary} from '/ui/media-library.js';
@@ -30,12 +31,7 @@ function undoDelete(){
   if(!restoreBlock(target,removed)){toast('Cannot restore this block: the page is full or the block already exists.');return;}
   deletedBlocks.pop();pageId=target.id;blockId=removed.block.id;tab='pages';changed(true,true);toast('Block restored.');
 }
-async function api(path, value, extra={}) {
-  const response = await fetch('/api/'+path, value===undefined ? {} : {method:'POST',headers:{'X-Folio-Token':$('meta[name=folio-token]').content,'Content-Type':'application/json',...extra},body:value instanceof Blob ? value : JSON.stringify(value)});
-  const data = await response.json();
-  if(!response.ok) throw new Error(data.error || 'Operation failed');
-  return data;
-}
+const api=createApiClient({getToken:()=>$('meta[name=folio-token]').content,setToken:token=>{$('meta[name=folio-token]').content=token;},parseToken:html=>new DOMParser().parseFromString(html,'text/html').querySelector('meta[name=folio-token]')?.content});
 function toast(message){ $('#toast').textContent=message;$('#toast').style.display='block';clearTimeout(cleanupTimer);cleanupTimer=setTimeout(()=>$('#toast').style.display='none',5000); }
 function preview(focus=false){if(!project)return;previewFocus ||= focus;$('#page-label').textContent=page().title;if(previewFrame)return;previewFrame=requestAnimationFrame(()=>{previewFrame=0;$('#preview').contentWindow.postMessage({type:'render',project,pageId,blockId,focus:previewFocus},location.origin);previewFocus=false;});}
 function changed(repaint=false,focus=false,inline=false){revision++;$('#save-status').textContent='Unsaved changes';clearTimeout(saveTimer);saveTimer=setTimeout(()=>save().catch(e=>toast(e.message)),650);if(repaint)render();if(!inline)preview(focus);}

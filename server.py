@@ -482,7 +482,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if not self.host_ok() or not secrets.compare_digest(self.headers.get('X-Folio-Token', ''), TOKEN):
-            return self.reply(403, {'error': 'Invalid local editor session. Reload the editor.'})
+            return self.reply(403, {'error': 'Invalid local editor session. Reload the editor.', 'code': 'session_expired'})
         try:
             length = int(self.headers.get('Content-Length', '0'))
             if not 0 < length <= 60 * 1024 * 1024:

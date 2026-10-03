@@ -1,6 +1,14 @@
 import {materialVars,materialCss,materialTextureCss} from './materials.js';
 import catalog from './styles.json' with {type:'json'};
 export const {fonts:FONTS,fields:STYLE_FIELDS,presets:THEMES}=catalog;
+export function normalizeStyleNumber(key,raw,fallback){
+  const field=STYLE_FIELDS[key];if(field?.type!=='number')return undefined;
+  const value=String(raw).trim()===''?NaN:Number(raw);
+  const safe=Number.isFinite(value)?value:Number.isFinite(fallback)?fallback:field.default;
+  const bounded=Math.min(field.max,Math.max(field.min,safe));
+  const stepped=field.min+Math.round((bounded-field.min)/field.step)*field.step;
+  return Number(Math.min(field.max,Math.max(field.min,stepped)).toFixed(8));
+}
 export function validStyle(key,value,block=false){
   const f=STYLE_FIELDS[key];if(!f||(block&&f.siteOnly))return false;
   if(f.type==='color')return typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value);
