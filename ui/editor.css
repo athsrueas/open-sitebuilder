@@ -66,3 +66,5 @@ pre{color:#333;font-family:"Courier New",monospace}#job-link{color:#111}
 .page-item>button.page-drop-target{outline:3px solid #111;outline-offset:2px;background:#e4e4e4;color:#111}.page-item>button.page-drop-target::after{content:"Drop to move block";display:block;font-size:11px;margin-top:4px;color:#111}
 
 .page-list{position:sticky;top:0;background:#fff;z-index:2;padding:4px 0 8px;max-height:40vh;overflow:auto}
+
+.footer-dialog{width:min(650px,90vw);max-height:85vh;overflow:auto}.footer-link{border-top:1px solid #ccc;margin:16px 0;padding-top:16px}.footer-dialog [data-error]{color:#a00}

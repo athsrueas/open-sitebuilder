@@ -58,12 +58,12 @@ editorStyle.textContent+=freeEditorCss+`.canvas-tools [data-create="freeLayout"]
 document.head.append(editorStyle);
 const tools=document.createElement('div');
 tools.className='canvas-tools';
-tools.innerHTML='<span>Click text to write · Drop photos anywhere</span><button data-create="freeLayout">+ Free layout</button><button data-create="text">+ Text</button><button data-create="image">+ Image</button><button data-create="gallery">+ Gallery</button><button data-create="sketchbook">+ Sketchbook</button><button data-photos>Add photos</button>';
+tools.innerHTML='<span>Click text to write · Drop photos anywhere</span><button data-create="freeLayout">+ Free layout</button><button data-create="text">+ Text</button><button data-create="image">+ Image</button><button data-create="gallery">+ Gallery</button><button data-create="sketchbook">+ Sketchbook</button><button data-photos>Add photos</button><button data-footer>Footer</button>';
 const library=document.createElement('details');library.className='canvas-library';library.innerHTML='<summary>All blocks</summary>'+blockLibraryMarkup(esc,'data-create');tools.append(library);wireBlockSearch(library);
 library.querySelectorAll('[data-create]').forEach(button=>button.ondragstart=e=>{e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain','new:'+button.dataset.create);});
 document.body.prepend(tools);
 const picker=document.createElement('input');picker.type='file';picker.multiple=true;picker.accept='image/jpeg,image/png,image/webp';picker.hidden=true;document.body.append(picker);
-tools.addEventListener('click',e=>{const create=e.target.closest('[data-create]');if(create){send({type:'add-block',blockType:create.dataset.create});library.open=false;}if(e.target.hasAttribute('data-photos'))choosePhotos({});});
+tools.addEventListener('click',e=>{if(e.target.hasAttribute('data-footer'))send({type:'edit-footer'});const create=e.target.closest('[data-create]');if(create){send({type:'add-block',blockType:create.dataset.create});library.open=false;}if(e.target.hasAttribute('data-photos'))choosePhotos({});});
 function choosePhotos(target){uploadTarget=target;picker.click();}
 picker.onchange=()=>{send({type:'drop-artwork',...uploadTarget,files:[...picker.files],beforeId:null});picker.value='';};
 
@@ -173,6 +173,13 @@ document.addEventListener('dragleave',e=>{if(!e.relatedTarget)clearDrop();});
 document.addEventListener('dragend',clearDrop);
 
 function decorate(container,page,theme,project){
+  const footer=container.querySelector('footer');
+  if(footer){
+    const controls=document.createElement('div');controls.className='editor-chrome footer-tools';controls.innerHTML='<button data-edit-footer>Edit footer</button> <button data-hide-footer>Hide footer</button>';footer.prepend(controls);
+    controls.querySelector('[data-edit-footer]').onclick=()=>send({type:'edit-footer'});
+    controls.querySelector('[data-hide-footer]').onclick=()=>send({type:'hide-footer'});
+    const text=footer.querySelector('[data-footer-edit]');text.contentEditable='true';text.setAttribute('role','textbox');text.setAttribute('aria-label','Footer text on page');text.dataset.placeholder='Click to add footer text…';text.style.display='block';
+  }
   container.querySelectorAll('[data-project-edit]').forEach(el=>{el.contentEditable='true';el.setAttribute('role','textbox');el.setAttribute('aria-label',el.dataset.projectEdit==='name'?'Artist name on page':'Portfolio description on page');});
   for(const b of page.blocks){
     const section=container.querySelector(`[data-block="${b.id}"]`);
@@ -277,7 +284,7 @@ root.addEventListener('focusin',e=>{
   selectedBlockId=e.target.closest('[data-block]')?.dataset.block;
   root.querySelectorAll('[data-block]').forEach(el=>el.classList.toggle('is-selected',el.dataset.block===selectedBlockId));
 });
-function sendText(el){if(el.dataset.projectEdit){send({type:'project-inline-edit',field:el.dataset.projectEdit,value:el.innerText});return;}send({type:'inline-edit',blockId:el.closest('[data-block]').dataset.block,spreadId:el.closest('[data-spread-id]')?.dataset.spreadId,itemIndex:el.closest('[data-item-index]')?Number(el.closest('[data-item-index]').dataset.itemIndex):undefined,field:el.dataset.cell?'cell:'+el.dataset.cell:el.dataset.edit,value:el.innerText.replace(/\r/g,'')});}
+function sendText(el){if(el.dataset.footerEdit){send({type:'footer-inline-edit',value:el.innerText});return;}if(el.dataset.projectEdit){send({type:'project-inline-edit',field:el.dataset.projectEdit,value:el.innerText});return;}send({type:'inline-edit',blockId:el.closest('[data-block]').dataset.block,spreadId:el.closest('[data-spread-id]')?.dataset.spreadId,itemIndex:el.closest('[data-item-index]')?Number(el.closest('[data-item-index]').dataset.itemIndex):undefined,field:el.dataset.cell?'cell:'+el.dataset.cell:el.dataset.edit,value:el.innerText.replace(/\r/g,'')});}
 root.addEventListener('input',e=>{if(e.target.matches('[contenteditable]'))sendText(e.target);});
 root.addEventListener('focusout',e=>{
   if(e.target.matches('.canvas-options input,.item-options input,.canvas-styles input,.canvas-styles select')){send({type:'edit-end'});return;}

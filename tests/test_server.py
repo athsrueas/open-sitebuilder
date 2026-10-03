@@ -14,6 +14,16 @@ import server
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_footer_validates_visibility_text_and_link_destinations(self):
+        project = server.default_project()
+        footer = dict(enabled=False, showName=True, text='Saved footer', links=[dict(title='Statement', url='folio:page:'+project['pages'][0]['id'])])
+        project['footer'] = footer
+        server.validate_project(project)
+        for change in (dict(enabled='false'), dict(showName=None), dict(text=3), dict(text='x'*5001), dict(links=[dict(title='Bad',url='javascript:alert(1)')]), dict(links=[dict(title='',url='https://example.com')]),dict(links=[dict(title='Link',url='https://example.com')]*31)):
+            project['footer'] = {**footer, **change}
+            with self.assertRaisesRegex(ValueError, 'footer'):
+                server.validate_project(project)
+
     def test_internal_destinations_and_fragments_are_navigation_only(self):
         ref='folio:page:'+('a'*32)+':block:'+('b'*32)
         for value in (ref, '#block-'+('b'*32), '/statement/#section'):

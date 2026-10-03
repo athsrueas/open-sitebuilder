@@ -135,6 +135,19 @@ def validate_project(p):
     for key in ('name', 'description'):
         if not isinstance(p.get(key), str) or len(p[key]) > 5000:
             raise ValueError('Invalid artist details.')
+    if 'footer' in p:
+        footer = p['footer']
+        if not isinstance(footer, dict) or any(not isinstance(footer.get(k), bool) for k in ('enabled', 'showName')):
+            raise ValueError('Invalid footer visibility.')
+        if not isinstance(footer.get('text'), str) or len(footer['text']) > 5000:
+            raise ValueError('Invalid footer text.')
+        links = footer.get('links')
+        if not isinstance(links, list) or len(links) > 30:
+            raise ValueError('Invalid footer links.')
+        for link in links:
+            if (not isinstance(link, dict) or not isinstance(link.get('title'), str) or not 1 <= len(link['title'].strip()) <= 200
+                    or not isinstance(link.get('url'), str) or len(link['url']) > 20000 or not valid_url(link['url'])):
+                raise ValueError('Invalid footer link.')
     theme = p.get('theme', {})
     for key in ('background', 'ink', 'accent'):
         if not COLOR.fullmatch(str(theme.get(key, ''))):

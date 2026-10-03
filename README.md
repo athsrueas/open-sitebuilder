@@ -102,6 +102,8 @@ The editor uses a minimal black-and-white interface. **Workspace** lets you choo
 
 Desktop and mobile arrangements are separate. **Mobile layout** opens a portrait canvas with independent layer positions and sizes. New blocks default to automatic mobile stacking. The canvas displays an explicit mobile status message; **Automatic mobile fix** restores a readable stack, and **Preview mobile result** shows the phone output. If custom mobile setup is incomplete after adding a layer, the exported site automatically stacks the entire block on phones until all layers have mobile positions. Mobile stacking uses the layer list's bottom-to-top order as reading order; review that order if desktop layering differs from the intended reading sequence.
 
+Use **Footer** in the canvas toolbar or **Edit site footer** in Pages to edit the footer shared by all portfolio pages. Toggle **Show footer** to remove the whole footer, separator and spacing without deleting its content. Choose whether to show the artist name, edit multiline text directly on the canvas, and add named links to pages, block shortcuts or external websites. Splash pages always hide the footer.
+
 Whole page blocks currently follow a vertical flow. Gallery and Artwork cards provide image grids, Text columns and Image + text provide side-by-side content, and Free layout provides independent image/text layers. Arbitrary blocks cannot yet be nested in a row or grid container.
 
 The library contains 26 blocks:

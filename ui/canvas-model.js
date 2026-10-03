@@ -7,6 +7,7 @@ export function moveBlockToPage(project,blockId,targetPageId){
   const index=source.blocks.findIndex(b=>b.id===blockId),block=source.blocks[index];
   const oldLink=internalLink(source,block),newLink=internalLink(target,block);
   source.blocks.splice(index,1);target.blocks.push(block);
+  for(const link of project.footer?.links||[])if(link.url===oldLink)link.url=newLink;
   for(const page of project.pages)for(const b of page.blocks){
     if(b.url===oldLink)b.url=newLink;
     for(const item of b.items||[])if(item.url===oldLink)item.url=newLink;
