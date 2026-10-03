@@ -73,14 +73,14 @@ If you separately authorize API-based DNS setup or diagnosis, add **Zone → DNS
 
 ## 6. Connect a custom subdomain
 
-For example, to publish at `gallery.mirandafreestone.com`:
+For example, to publish at `gallery.example.com`:
 
 1. Open your Pages project in **Workers & Pages**.
 2. Open **Custom domains → Set up a custom domain**.
-3. Enter `gallery.mirandafreestone.com`, check its spelling, and continue.
+3. Enter `gallery.example.com`, check its spelling, and continue.
 4. When the domain is in this Cloudflare account, follow the prompt to create its DNS record. If asked to do this manually, create a **CNAME** named `gallery` pointing to the project's `pages.dev` hostname, without `https://` or a path.
 5. If an A, AAAA, or CNAME already uses that exact name, review what it serves before replacing it. Leave unrelated website and mail records alone.
-6. Wait until Pages reports the domain active and HTTPS is provisioned, then visit `https://gallery.mirandafreestone.com/`.
+6. Wait until Pages reports the domain active and HTTPS is provisioned, then visit `https://gallery.example.com/`.
 7. Repeat for other desired subdomains. Domains connected to the same Pages project serve that same site's content; independently published portfolios need separate projects.
 
 Register the custom domain in **Pages first**. Adding only a DNS CNAME can produce a 522 error. See [Cloudflare custom domain setup](https://developers.cloudflare.com/pages/configuration/custom-domains/).

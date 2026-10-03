@@ -62,7 +62,7 @@ Choose **Website address or custom link** for an HTTPS website or hosted file, a
 
 **Show in site navigation** controls whether a page appears in the site menu. Turn it off for pages reached through cards, buttons or direct links. Hidden pages remain in the editor and all destination selectors, still build normally, and are accessible at their URL. This setting does not make a page private.
 
-**Page URL name** expects only a name such as `artist-statement`, not a full address. Its address preview shows `/artist-statement/` on the configured Pages hostname, or an example domain before configuration. A custom domain uses the same path: `https://gallery.mirandafreestone.com/artist-statement/`. The first page is the homepage at `/`, regardless of its URL name. URL names must be unique lowercase words separated by hyphens.
+**Page URL name** expects only a name such as `artist-statement`, not a full address. Its address preview shows `/artist-statement/` on the configured Pages hostname, or an example domain before configuration. A custom domain uses the same path: `https://gallery.example.com/artist-statement/`. The first page is the homepage at `/`, regardless of its URL name. URL names must be unique lowercase words separated by hyphens.
 
 Internal references resolve to ordinary links and section IDs during the Astro build. Visitors receive no link picker, project catalogue or routing library.
 
@@ -132,7 +132,7 @@ The preview and Astro output share `shared/render.js` and the small `shared/runt
 
 ## Publish to Cloudflare
 
-For a temporary landing page, enable **Settings → Full-screen splash layout**. This hides the portfolio navigation and footer and gives each block a full viewport canvas; headings and paper/ink settings remain editable. [examples/coming-soon.json](examples/coming-soon.json) contains the Miranda Freestone placeholder with watercolor paper, slow moving light, soft ink type and animated pigment blooms. The local portfolio before this change is preserved in `data/backups`. Disable the layout to return to normal page styling; restore a backed-up project to recover its previous pages.
+For a temporary landing page, enable **Settings → Full-screen splash layout**. This hides the portfolio navigation and footer and gives each block a full viewport canvas; headings and paper/ink settings remain editable. [examples/coming-soon.json](examples/coming-soon.json) contains a generic artist placeholder with watercolor paper, slow moving light, soft ink type and animated pigment blooms. Disable the layout to return to normal page styling. Back up your project before replacing its content with an example.
 
 Follow the [step-by-step Cloudflare setup and security guide](docs/CLOUDFLARE-SETUP.md). It covers creating an account and Pages project, finding the account ID, creating a scoped API token, saving credentials, publishing, connecting subdomains, and rotating or revoking tokens.
 

@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "name": "Miranda Freestone",
-  "description": "Art and sketchbooks by Miranda Freestone. Something new coming soon.",
+  "name": "Example Artist",
+  "description": "Art and sketchbooks by Example Artist. Something new coming soon.",
   "presentation": "splash",
   "theme": {
     "background": "#f4f0e7",
@@ -37,7 +37,7 @@
         {
           "id": "6484c1228cab4796a32f4e45de27c17c",
           "type": "hero",
-          "label": "Miranda Freestone",
+          "label": "Example Artist",
           "title": "Something new\ncoming soon.",
           "text": "",
           "images": [],
