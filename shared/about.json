@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Windows installer and secure publishing settings",
+      "description": "Install private Python, Node and dependencies from a ZIP on a new Windows computer, save Cloudflare settings using current-user Windows encryption, and follow a detailed account, token, subdomain and security guide.",
+      "commit": "befbb709f19e6a9ebcd4ec9e996eb6e5ae33276a"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Lean Astro exports",
       "description": "Remove editor metadata, unused block CSS and unselected material effects from published pages. Static sites emit no JavaScript; animation and sketchbook runtime files are generated only when used.",
       "commit": "bbcf2b8f1c9222d0e27557d39ec260b14451c1ef"
