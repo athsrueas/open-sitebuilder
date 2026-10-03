@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Automatic portfolio backups before upgrades",
+      "description": "Save and verify dated portfolio snapshots, original images and settings before ZIP installation or in-editor upgrades. Stop on backup errors, retain failed-upgrade recovery snapshots, and manage portfolio retention separately from code backups.",
+      "commit": "4189f928c9ab31e346cbbbfc9f305feffdbb17fa"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Code backup management and safe server replacement",
       "description": "Manage code backups from Updates, inspect sizes, reveal folders, recycle unwanted versions, and choose zero, one, three or unlimited retention. Preserve failed-update recovery copies and stop matching servers before installation or updates, with busy-build and concurrent-operation protection.",
       "commit": "354fb44402460e4880076b9174d242afbdabe6e6"
