@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Sketchbooks without a fixed page limit",
+      "description": "Remove the 200-page save cap, add sketchbook pages directly from the canvas toolbar, and display the current page count. Verify validation and static export of 1,000 pages without truncation.",
+      "commit": "ffb6a6ab5408107449b9128deb052967c5812a50"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Automatic portfolio backups before upgrades",
       "description": "Save and verify dated portfolio snapshots, original images and settings before ZIP installation or in-editor upgrades. Stop on backup errors, retain failed-upgrade recovery snapshots, and manage portfolio retention separately from code backups.",
       "commit": "4189f928c9ab31e346cbbbfc9f305feffdbb17fa"
