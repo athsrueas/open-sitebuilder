@@ -11,7 +11,9 @@ try {
     Set-Content -LiteralPath (Join-Path $Fixture 'data/update-backups/ignored.txt') -Value 'do not nest code backups'
     Set-Content -LiteralPath (Join-Path $Fixture 'data/trash/ignored.txt') -Value 'do not copy deleted images'
     Set-Content -LiteralPath (Join-Path $Fixture '.env') -Value 'TEST_ONLY=legacy settings'
-    $First = New-StudioPortfolioBackup $Fixture
+    $LogHandle = [IO.File]::Open((Join-Path $Fixture 'data/update.log'),[IO.FileMode]::Create,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+    try { $First = New-StudioPortfolioBackup $Fixture } finally { $LogHandle.Dispose() }
+    if (Test-Path -LiteralPath (Join-Path $First 'data/update.log')) { throw 'Locked diagnostic log was copied.' }
     foreach ($Relative in @('data/project.json','data/originals/image.png','data/credentials.dat','.env')) {
         if ((Get-FileHash -LiteralPath (Join-Path $Fixture $Relative)).Hash -ne (Get-FileHash -LiteralPath (Join-Path $First $Relative)).Hash) { throw "Backup mismatch: $Relative" }
     }

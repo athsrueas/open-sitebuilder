@@ -10,9 +10,10 @@ try {
         $CaseRoot = Join-Path $FixtureRoot ("$ShouldFail-$($Case.keep)")
         $Installed = Join-Path $CaseRoot 'installed'
         $FakeSource = Join-Path $CaseRoot "open-sitebuilder-$FakeCommit"
-        New-Item -ItemType Directory -Path (Join-Path $Installed 'data'),(Join-Path $Installed 'ui'),(Join-Path $Installed 'scripts'),(Join-Path $FakeSource 'ui') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $Installed 'data'),(Join-Path $Installed 'ui'),(Join-Path $Installed 'scripts'),(Join-Path $FakeSource 'ui'),(Join-Path $FakeSource 'scripts') -Force | Out-Null
         Copy-Item -LiteralPath (Join-Path $RepoRoot 'Update.ps1') -Destination $Installed
         Copy-Item -LiteralPath (Join-Path $RepoRoot 'scripts/backups.ps1') -Destination (Join-Path $Installed 'scripts')
+        Copy-Item -LiteralPath (Join-Path $RepoRoot 'scripts/backups.ps1') -Destination (Join-Path $FakeSource 'scripts')
         $LifecyclePath = (Join-Path $RepoRoot 'scripts/lifecycle.ps1').Replace("'", "''")
         Set-Content -LiteralPath (Join-Path $Installed 'scripts/lifecycle.ps1') -Value ". '$LifecyclePath'`nfunction Stop-StudioInstance { param(`$ApplicationRoot) Set-Content -LiteralPath (Join-Path `$ApplicationRoot 'data/stopped.txt') -Value 'stopped' }"
         Set-Content -LiteralPath (Join-Path $Installed 'package.json') -Value '{"version":"0.1.0"}'
@@ -29,6 +30,10 @@ try {
         $Installer = @'
 param($InstallDirectory, [switch]$NoLaunch, [switch]$NoShortcut)
 if (!(Test-Path -LiteralPath (Join-Path $InstallDirectory 'data/stopped.txt'))) { throw 'Server was not stopped before installation.' }
+. (Join-Path $PSScriptRoot 'scripts/backups.ps1')
+$Snapshot = New-StudioPortfolioBackup $InstallDirectory
+if (Test-Path -LiteralPath (Join-Path $Snapshot 'data/update.log')) { throw 'Updater copied its open transcript.' }
+if ((Get-Content -LiteralPath (Join-Path $Snapshot 'data/project.json')).Trim() -ne 'preserve project') { throw 'Updater snapshot lost project.' }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Destination $InstallDirectory -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'ui/version.txt') -Destination (Join-Path $InstallDirectory 'ui/version.txt') -Force
 '@
@@ -48,6 +53,7 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'ui/version.txt') -Destination (
         $Count = @(Get-ChildItem -LiteralPath (Join-Path $Installed 'data/update-backups') -Directory).Count
         $ExpectedCount = if ($ShouldFail -or $Case.keep -in @(3,-1)) {2} else {$Case.keep}
         if ($Count -ne $ExpectedCount) { throw 'Unexpected retained backup count.' }
+        if (@(Get-ChildItem -LiteralPath (Join-Path $Installed 'portfolio-backups') -Directory).Count -ne 1) { throw 'Updater did not retain a verified portfolio snapshot.' }
     }
     Write-Host 'Updater success, failure restore, data preservation and staging cleanup passed.'
 } finally {

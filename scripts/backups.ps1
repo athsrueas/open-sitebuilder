@@ -37,6 +37,9 @@ function New-StudioPortfolioBackup([string]$ApplicationRoot) {
     function Copy-PortfolioData($From, $To, $Relative) {
         foreach ($Item in Get-ChildItem -LiteralPath $From -Force) {
             if (!$Relative -and $Item.Name -in @('update-backups','trash')) { continue }
+            # The updater transcript remains open while this snapshot is made.
+            # Root-level diagnostic logs are transient, not portfolio content.
+            if (!$Relative -and !$Item.PSIsContainer -and $Item.Extension -eq '.log') { continue }
             if ($Item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Portfolio contains a linked file or folder. Backup stopped before modifying application files.' }
             $Target = Join-Path $To $Item.Name
             $PathInSnapshot = if ($Relative) { "$Relative/$($Item.Name)" } else { "data/$($Item.Name)" }
