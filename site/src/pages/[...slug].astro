@@ -14,9 +14,11 @@ const { css, html } = portfolioMarkup(project, page.id);
     <style is:inline set:html={css}></style>
     <div id="portfolio" set:html={html}></div>
     <script>
-      import { PageFlip } from 'page-flip';
-      import { initPortfolio } from '../../../shared/render.js';
-      initPortfolio(document.querySelector('#portfolio'), PageFlip);
+      import { initPortfolio } from '../../../shared/runtime.js';
+      const root=document.querySelector('#portfolio');
+      if(root.querySelector('[data-book]')){
+        import('page-flip').then(({PageFlip})=>initPortfolio(root,PageFlip)).catch(()=>initPortfolio(root));
+      }else initPortfolio(root);
     </script>
   </body>
 </html>

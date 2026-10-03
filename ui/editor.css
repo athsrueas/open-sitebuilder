@@ -42,3 +42,13 @@ pre{color:#333;font-family:"Courier New",monospace}#job-link{color:#111}
 .decoration-palette{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.decoration-palette button{height:48px;padding:4px;font-size:24px}.decoration-palette button[aria-pressed=true]{border:2px solid #111;background:#eee}
 .placed-sticker{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #ddd;padding:8px 0}.placed-sticker span{font-size:16px}
 @media(max-width:850px){.toolbar{height:auto;min-height:76px;flex-wrap:wrap;padding:12px 15px}.toolbar-actions{flex-wrap:wrap}.workspace{min-height:calc(100vh - 76px)}.brand{min-width:0}.preview-wrap{padding:0 12px}}
+/* Narrow windows retain access to every panel without a horizontal page scroll. */
+@media(max-width:600px){
+  .workspace,.workspace:not(.show-details){grid-template-columns:minmax(0,1fr);height:auto}
+  .left-panel{max-height:45dvh;border-right:0;border-bottom:1px solid #ccc;padding:18px}
+  .canvas-area{height:75dvh;min-height:520px}.canvas-toolbar{height:auto;min-height:64px;gap:10px;flex-wrap:wrap;padding:12px}
+  .canvas-toolbar #page-label{padding-left:6px}.canvas-foot{height:auto;padding:12px}
+  .right-panel{grid-column:auto;max-height:70dvh;border-left:0}
+  .toolbar-actions{width:100%;margin-left:0;gap:6px}.toolbar-actions button{flex:1 0 80px;min-width:0;padding:8px 6px}.toolbar-actions .primary{min-width:0;gap:5px}
+  .preview-wrap{padding:0 8px}.decoration-palette{grid-template-columns:repeat(4,1fr)}
+}

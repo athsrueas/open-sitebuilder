@@ -17,3 +17,11 @@ export function resizeDimensions(width,height,keepRatio,sourceWidth,sourceHeight
   if(!Number.isFinite(width)||!Number.isFinite(height)||width<1||height<1||width>6000||height>6000||width*height>25_000_000)throw new Error('Use dimensions from 1–6,000 px, up to 25 megapixels.');
   return {width,height};
 }
+export function boundedCrop(selection,bounds,ratio){
+  const left=Math.max(selection.x,bounds.x),top=Math.max(selection.y,bounds.y);
+  const right=Math.min(selection.x+selection.width,bounds.x+bounds.width),bottom=Math.min(selection.y+selection.height,bounds.y+bounds.height);
+  let width=right-left,height=bottom-top;
+  if(width<1||height<1)throw new Error('Move the crop selection onto the image.');
+  if(Number.isFinite(ratio)&&ratio>0){if(width/height>ratio)width=height*ratio;else height=width/ratio;}
+  return {x:left+(right-left-width)/2,y:top+(bottom-top-height)/2,width,height};
+}

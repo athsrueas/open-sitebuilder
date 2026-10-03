@@ -10,11 +10,15 @@ export const PAPER_IMAGES={none:'none',cotton:tile('.55',1.4,fibers),watercolor:
 export const INK_MASK=svgImage(`<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500"><filter id="edge" x="-25%" y="-25%" width="150%" height="150%"><feTurbulence type="fractalNoise" baseFrequency=".027" numOctaves="3" seed="41" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="62" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="2"/></filter><g filter="url(#edge)" fill="black"><ellipse cx="255" cy="250" rx="142" ry="156" opacity=".6"/><ellipse cx="219" cy="238" rx="132" ry="145" opacity=".4"/><ellipse cx="281" cy="271" rx="101" ry="115" opacity=".5"/></g></svg>`);
 export function materialVars(values,block=false){
   const result=[];
-  if(Object.hasOwn(PAPER_IMAGES,values.paperTexture))result.push(`--paper-image:${PAPER_IMAGES[values.paperTexture]}`,...(block?[`--block-paper-display:${values.paperTexture==='none'?'none':'block'}`]:[]));
+  if(Object.hasOwn(PAPER_IMAGES,values.paperTexture))result.push(`--paper-image:${values.paperTexture==='none'?'none':`var(--material-paper-${values.paperTexture},none)`}`,...(block?[`--block-paper-display:${values.paperTexture==='none'?'none':'block'}`]:[]));
   if(['none','soft-light'].includes(values.paperMotion))result.push(`--paper-light-display:${values.paperMotion==='none'?'none':'block'}`);
   if(['clean','letterpress','dry-ink','bleed'].includes(values.inkFinish))result.push(`--ink-filter:${values.inkFinish==='clean'?'none':`url(#folio-ink-${values.inkFinish})`}`);
   if(['none','still','bloom','drift'].includes(values.inkWash))result.push(`--wash-display:${values.inkWash==='none'?'none':'block'}`,`--wash-animation:${['bloom','drift'].includes(values.inkWash)?'folio-ink-'+values.inkWash:'none'}`);
   return result.join(';');
+}
+export function materialTextureCss(styles){
+  const used=new Set(styles.map(s=>s?.paperTexture).filter(k=>k!=='none'&&Object.hasOwn(PAPER_IMAGES,k)));
+  return used.size?`body{${[...used].map(k=>`--material-paper-${k}:${PAPER_IMAGES[k]}`).join(';')}}`:'';
 }
 export const materialDefs=`<svg class="material-defs" aria-hidden="true" width="0" height="0" xmlns="http://www.w3.org/2000/svg"><defs>
 <filter id="folio-ink-letterpress" x="-5%" y="-15%" width="110%" height="130%"><feMorphology operator="dilate" radius=".12"/><feDropShadow dx="0" dy=".7" stdDeviation=".2" flood-color="white" flood-opacity=".55"/></filter>
@@ -44,13 +48,3 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 @media(prefers-reduced-motion:reduce){.paper-light,.ink-wash i{animation:none!important}}
 @media print{.paper-light,.ink-wash i{animation:none!important}}
 `;
-// Pause decorative motion outside the viewport and while the tab is hidden.
-export function initMaterials(root){
-  const nodes=[...(root.matches?.('.folio-block')?[root]:root.querySelectorAll('.folio-block'))];
-  const doc=root.ownerDocument,visible=new Set(nodes);
-  const update=()=>nodes.forEach(n=>n.style.setProperty('--material-play',!doc.hidden&&visible.has(n)?'running':'paused'));
-  const Observer=doc.defaultView.IntersectionObserver;
-  const observer=Observer?new Observer(entries=>{for(const e of entries)e.isIntersecting?visible.add(e.target):visible.delete(e.target);update();}):null;
-  nodes.forEach(n=>observer?.observe(n));doc.addEventListener('visibilitychange',update);update();
-  return()=>{observer?.disconnect();doc.removeEventListener('visibilitychange',update);};
-}

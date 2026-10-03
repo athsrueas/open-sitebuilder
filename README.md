@@ -68,7 +68,7 @@ The catalogue is based on the standard types documented by [WordPress](https://w
 - Open **Paper & ink** in site defaults or a block’s canvas styles for paper surfaces, slow lighting, heading ink finishes and pigment washes. Adjust strength, scale, color and motion speed. See [paper and ink materials](PAPER-AND-INK.md) for techniques and research.
 - Changes save automatically. Click **Build site** to generate `site/dist` and open the built preview.
 
-The preview and Astro output share `shared/render.js`. The editor itself is plain JavaScript and CSS; no frontend framework or Node dev server is needed while editing.
+The preview and Astro output share `shared/render.js` and the small `shared/runtime.js` interaction layer. Media grids use 480 px thumbnails; exported images offer responsive derivatives. Only images referenced by pages are included in builds. The editor itself is plain JavaScript and CSS; no frontend framework or Node dev server is needed while editing.
 
 ## Publish to Cloudflare
 
@@ -96,6 +96,8 @@ Official references: [StPageFlip](https://github.com/Nodlik/StPageFlip), [Cloudf
 Back up the entire `data` folder. It contains `project.json`, nonsecret Cloudflare configuration, original uploads, and processed web images. Original bytes remain local. Images are orientation-corrected, metadata removed, and converted to WebP at up to 2,400 px for the portfolio and 5,000 px for the full-size link. Images are never upscaled. Import supports up to 60 MB and 80 megapixels per image. Transparency is preserved. Published original downloads and images above 5,000 px are not included in this first version.
 
 The server binds only to `127.0.0.1`; host checks and a per-launch request token protect writes. Do not expose it with a tunnel or bind it to a network interface. No analytics, remote fonts, or external image dependencies are included.
+
+See [the performance audit](PERFORMANCE-AUDIT.md) for coverage, measured results, and remaining device/network limitations.
 
 ## Development and checks
 

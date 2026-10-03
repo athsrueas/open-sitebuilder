@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {styleVars,siteStyles,validStyle} from '../shared/styles.js';
 import {portfolioMarkup} from '../shared/render.js';
-import {initMaterials} from '../shared/materials.js';
+import {initMaterials} from '../shared/material-lifecycle.js';
 
 test('material overrides are validated, inherit and can explicitly disable site materials',()=>{
   const defaults=siteStyles({});

@@ -1,4 +1,4 @@
-import {materialVars,materialCss} from './materials.js';
+import {materialVars,materialCss,materialTextureCss} from './materials.js';
 import catalog from './styles.json' with {type:'json'};
 export const {fonts:FONTS,fields:STYLE_FIELDS,presets:THEMES}=catalog;
 export function validStyle(key,value,block=false){
@@ -36,7 +36,7 @@ export function setBlockStyle(block,key,value){
   if(!validStyle(key,value,true))return false;
   (block.styles??={})[key]=value;return true;
 }
-export function portfolioStyleCss(theme){return `
+export function portfolioStyleCss(theme,blocks=[]){return `
 body{${styleVars(siteStyles(theme))};font-family:var(--bodyFont);font-size:var(--bodySize);color:var(--ink);background:var(--background)}
 main,header{max-width:var(--contentWidth)}
 .folio-block{background:var(--panel,transparent);color:var(--ink);font-family:var(--bodyFont);font-size:var(--bodySize);text-align:var(--align);padding:var(--padding);margin-bottom:var(--blockGap);letter-spacing:var(--letterSpacing)}
@@ -57,8 +57,10 @@ main,header{max-width:var(--contentWidth)}
 .folio-block .artwork-cards img{height:var(--imageHeight)}
 .folio-block .folio-accordion summary{font-family:var(--headingFont);font-size:var(--headingSize)}
 .folio-block .rule,footer{border-color:currentColor}
+header,footer,.folio-block{overflow-wrap:anywhere;min-width:0}
+.text-columns>*,.artwork-cards>*,.image-text>*{min-width:0}
 .book-page{color:#292d29;--ink:#292d29;--headingInk:#292d29}
 .folio-block .book-page p{font-size:13px}
 nav a.active{border-color:var(--accent)}
 @media(max-width:600px){.folio-block .gallery{grid-template-columns:1fr}.folio-block .gallery a,.folio-block .carousel a,.folio-block .artwork-cards img{height:min(var(--imageHeight),400px)}.folio-block{padding:min(var(--padding),24px)}}
-${materialCss}`;}
+${materialCss}${materialTextureCss([theme,...blocks.map(b=>b.styles)])}`;}

@@ -6,6 +6,7 @@ import tempfile
 import threading
 import unittest
 from unittest.mock import patch
+from types import SimpleNamespace
 import urllib.error
 import urllib.request
 from PIL import Image
@@ -140,6 +141,16 @@ class LocalApiTests(unittest.TestCase):
             self.assertEqual(img.getpixel((0, 0))[3], 0)
         with Image.open(server.DATA / 'media' / (asset['id'] + '-full.webp')) as img:
             self.assertEqual(img.size, (3000, 2000))
+        for field, dimensions in (('thumb', (480, 320)), ('medium', (1200, 800))):
+            with self.request(asset[field]) as response:
+                self.assertIn('immutable', response.headers['Cache-Control'])
+                with Image.open(io.BytesIO(response.read())) as variant:
+                    self.assertEqual(variant.size, dimensions)
+                    self.assertEqual(variant.getpixel((0, 0))[3], 0)
+        thumbnail = server.DATA / 'media' / (asset['id'] + '-thumb.webp')
+        thumbnail.unlink()
+        self.request(asset['thumb']).close()
+        self.assertTrue(thumbnail.is_file())
         p = server.load_project()
         p['name'] = 'Test artist'
         p['assets'][0]['src'] = '/../../secret'
@@ -147,6 +158,28 @@ class LocalApiTests(unittest.TestCase):
         stored = server.load_project()
         self.assertEqual(stored['name'], 'Test artist')
         self.assertEqual(stored['assets'][0]['src'], asset['src'])
+
+    def test_build_publishes_only_used_images_and_keeps_local_library(self):
+        buf = io.BytesIO()
+        Image.new('RGB', (40, 30), 'red').save(buf, format='PNG')
+        active = json.load(self.request('/api/upload', buf.getvalue()))
+        unused = json.load(self.request('/api/upload', buf.getvalue()))
+        project = server.load_project()
+        project['pages'][0]['blocks'][0]['type'] = 'image'
+        project['pages'][0]['blocks'][0]['images'] = [active['id']]
+        project['assets'][0]['archived'] = True
+        root = server.DATA / 'build-root'
+        public = root / 'site/public/media'
+        public.mkdir(parents=True)
+        (public / (unused['id'] + '.webp')).write_bytes(b'stale')
+        with patch.object(server, 'ROOT', root), patch.object(server, 'node_command', return_value=['test']), patch.object(server.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout='', stderr='')):
+            server.build_project(project)
+        exported = json.loads((root / 'site/src/project.json').read_text())
+        self.assertEqual([a['id'] for a in exported['assets']], [active['id']])
+        self.assertTrue((public / (active['id'] + '.webp')).exists())
+        self.assertFalse((public / (unused['id'] + '.webp')).exists())
+        self.assertEqual(len(project['assets']), 2)
+        self.assertEqual(len(server.load_project()['assets']), 2)
 
     def test_edited_image_versions_preserve_alpha_and_source(self):
         source = io.BytesIO()

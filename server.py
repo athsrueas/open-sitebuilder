@@ -186,12 +186,25 @@ def node_command(script, *args):
 
 def build_project(project):
     validate_project(project)
+    used = {uid for page in project['pages'] for block in page['blocks']
+            for uid in [*block['images'], *(spread['image'] for spread in block['spreads'])] if uid}
+    project = copy.deepcopy(project)
+    project['assets'] = [asset for asset in project['assets'] if asset['id'] in used]
+    for asset in project['assets']:
+        for size, suffix, field in ((480, '-thumb', 'thumb'), (1200, '-medium', 'medium')):
+            ensure_image_variant(asset['id'], size, suffix)
+            asset[field] = f"/media/{asset['id']}{suffix}.webp"
     atomic_json(ROOT / 'site/src/project.json', project)
     public = ROOT / 'site/public/media'
     public.mkdir(parents=True, exist_ok=True)
+    # Remove stale generated derivatives so unused versions are not published.
+    for path in public.iterdir():
+        match = re.fullmatch(r'([a-f0-9]{32})(?:-full|-thumb|-medium)?\.webp', path.name)
+        if match and match[1] not in used and path.is_file() and path.resolve().is_relative_to(public.resolve()):
+            path.unlink()
     # Only processed images are published. The original uploads stay in data/originals.
     for asset in project['assets']:
-        for key in ('src', 'full'):
+        for key in ('src', 'full', 'thumb', 'medium'):
             filename = Path(asset[key]).name
             shutil.copy2(DATA / 'media' / filename, public / filename)
     result = subprocess.run(node_command('node_modules/astro/bin/astro.mjs', 'build', '--root', 'site'), cwd=ROOT,
@@ -229,11 +242,31 @@ def start_job(action, project, config, token):
             JOB_LOCK.release()
     threading.Thread(target=work, daemon=True).start()
 
+def ensure_image_variant(uid, size, suffix):
+    """Small cached derivatives for existing imports as well as new images."""
+    if not re.fullmatch(r'[a-f0-9]{32}', uid):
+        raise ValueError('Invalid image ID.')
+    target = DATA / 'media' / f'{uid}{suffix}.webp'
+    if target.is_file(): return target
+    source = DATA / 'media' / f'{uid}.webp'
+    if not source.is_file(): raise FileNotFoundError('Image unavailable.')
+    with Image.open(source) as opened:
+        img = opened.convert('RGBA' if 'A' in opened.getbands() else 'RGB')
+        img.thumbnail((size, size), Image.Resampling.LANCZOS)
+        temp = target.with_name(target.name + '.' + uuid.uuid4().hex + '.tmp')
+        try:
+            img.save(temp, 'WEBP', quality=86, lossless=img.mode == 'RGBA')
+            temp.replace(target)
+        finally:
+            temp.unlink(missing_ok=True)
+    return target
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *_):
         pass
 
-    def reply(self, status, body, mime='application/json'):
+    def reply(self, status, body, mime='application/json', cache='no-store'):
         if mime == 'application/json' and not isinstance(body, (bytes, bytearray)):
             body = json.dumps(body).encode()
         elif isinstance(body, str):
@@ -242,7 +275,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Type', mime)
         self.send_header('Content-Length', str(len(body)))
         self.send_header('X-Content-Type-Options', 'nosniff')
-        self.send_header('Cache-Control', 'no-store')
+        self.send_header('Cache-Control', cache)
         self.end_headers()
         self.wfile.write(body)
 
@@ -259,12 +292,19 @@ class Handler(BaseHTTPRequestHandler):
         content = path.read_bytes()
         if path.suffix == '.html' and base.resolve() == (ROOT / 'site/dist').resolve():
             content = content.replace(b'href="/', b'href="/built/')
-        self.reply(200, content, mime)
+        cache = 'public, max-age=31536000, immutable' if base.resolve() == (DATA / 'media').resolve() else 'no-store'
+        self.reply(200, content, mime, cache)
 
     def do_GET(self):
         if not self.host_ok():
             return self.reply(403, {'error': 'Invalid host.'})
         path = urllib.parse.urlparse(self.path).path
+        variant = re.fullmatch(r'/media/([a-f0-9]{32})-(thumb|medium)\.webp', path)
+        if variant:
+            try:
+                ensure_image_variant(variant[1], 480 if variant[2] == 'thumb' else 1200, '-' + variant[2])
+            except (FileNotFoundError, OSError):
+                return self.reply(404, {'error': 'Image unavailable.'})
         if path == '/':
             return self.reply(200, (ROOT / 'ui/index.html').read_text(encoding='utf-8').replace('__TOKEN__', TOKEN), 'text/html; charset=utf-8')
         if path == '/api/project':
@@ -384,14 +424,15 @@ class Handler(BaseHTTPRequestHandler):
         original = DATA / 'originals' / (uid + {'JPEG': '.jpg', 'PNG': '.png', 'WEBP': '.webp'}[original_format])
         original.write_bytes(body)
         width, height = img.size
-        for size, suffix, quality in ((2400, '', 86), (5000, '-full', 92)):
+        for size, suffix, quality in ((480, '-thumb', 86), (1200, '-medium', 86), (2400, '', 86), (5000, '-full', 92)):
             resized = img.copy()
             resized.thumbnail((size, size), Image.Resampling.LANCZOS)
             resized.save(DATA / 'media' / f'{uid}{suffix}.webp', 'WEBP', quality=quality,
                          lossless=img.mode == 'RGBA' or original_format == 'PNG')
         name = urllib.parse.unquote(self.headers.get('X-File-Name', 'Artwork'))[:200]
         asset = {'id': uid, 'name': name, 'alt': Path(name).stem, 'width': width, 'height': height,
-            'src': f'/media/{uid}.webp', 'full': f'/media/{uid}-full.webp'}
+            'src': f'/media/{uid}.webp', 'full': f'/media/{uid}-full.webp',
+            'thumb': f'/media/{uid}-thumb.webp', 'medium': f'/media/{uid}-medium.webp'}
         if source_id:
             asset['parentId'] = source_id
         with LOCK:

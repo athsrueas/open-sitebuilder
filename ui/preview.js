@@ -1,3 +1,5 @@
+import {measure} from '/ui/diagnostics.js';
+import {materialTextureCss} from '/shared/materials.js';
 import {styleVars} from '/shared/styles.js';
 import {styleControls,wireStyleControls} from '/ui/style-controls.js';
 import { BLOCKS, IMAGE_TYPES, SINGLE_IMAGE_TYPES } from '/shared/blocks.js';
@@ -8,11 +10,12 @@ import { portfolioMarkup, initPortfolio } from '/shared/render.js';
 // Keep unchanged sketchbooks mounted while editing surrounding text.
 const root = document.querySelector('#portfolio');
 let sections = new Map();
+const styleContexts=new WeakMap(),stylePanels=new WeakMap();
 let selectedBlockId;
 let pendingRender;
 let uploadTarget={};
 const editorStyle = document.createElement('style');
-editorStyle.textContent = `
+editorStyle.textContent = materialTextureCss(['cotton','watercolor','laid','canvas'].map(paperTexture=>({paperTexture})))+`
   .folio-block{position:relative;scroll-margin-top:30px;cursor:pointer}
   .folio-block.is-selected{outline:2px solid #111111;outline-offset:12px}
   .folio-block.is-selected::before{content:'Editing this block';position:absolute;top:-28px;left:0;background:#111111;color:white;font:10px Arial,sans-serif;padding:5px 8px;border-radius:0}
@@ -63,17 +66,22 @@ document.body.append(marker);
 const send = data => parent.postMessage(data, location.origin);
 
 function render(data) {
-  if(root.contains(document.activeElement)&&(document.activeElement.isContentEditable||document.activeElement.matches('.canvas-options input,.item-options input,.canvas-styles input,.canvas-styles select'))){pendingRender=data;return;}
+  if(document.hasFocus()&&root.contains(document.activeElement)&&(document.activeElement.isContentEditable||document.activeElement.matches('.canvas-options input,.item-options input,.canvas-styles input,.canvas-styles select'))){pendingRender=data;return;}
   pendingRender=null;
   const openStyles=[...root.querySelectorAll('.canvas-styles[open]')].map(el=>({id:el.closest('[data-block]').dataset.block,groups:[...el.querySelectorAll('.style-group[open]')].map(g=>g.dataset.styleGroup)}));
   const scroll = window.scrollY;
-  const markup = portfolioMarkup(data.project, data.pageId);
+  const signatures=new Map(),assets=new Map(data.project.assets.map(a=>[a.id,a]));
+  const markup = portfolioMarkup(data.project, data.pageId,{reuseBlock:b=>{
+    const ids=new Set([...(b.images||[]),...(b.spreads||[]).map(s=>s.image)]);
+    const signature=JSON.stringify({block:b,assets:[...ids].map(id=>assets.get(id))});signatures.set(b.id,signature);
+    return sections.get(b.id)?.signature===signature?`<section data-block="${b.id}"></section>`:null;
+  }});
   const container = document.createElement('div');
   container.innerHTML = markup.html;
   const page = data.project.pages.find(p => p.id === data.pageId);
   const next = new Map();
   for (const b of page.blocks) {
-    const signature = JSON.stringify({block:b, assets:data.project.assets, theme:data.project.theme});
+    const signature = signatures.get(b.id);
     const old = sections.get(b.id);
     const fresh = container.querySelector(`[data-block="${b.id}"]`);
     if (old?.signature === signature) {
@@ -91,7 +99,7 @@ function render(data) {
   style.textContent = markup.css;
   root.replaceChildren(style, container);
   decorate(container, page, data.project.theme);
-  for(const {id,groups} of openStyles){const el=container.querySelector(`[data-block="${id}"] .canvas-styles`);if(el){el.open=true;el.querySelectorAll(".style-group").forEach(g=>g.open=groups.includes(g.dataset.styleGroup));}}
+  for(const {id,groups} of openStyles){const el=container.querySelector(`[data-block="${id}"] .canvas-styles`);if(el){el.open=true;stylePanels.get(el.closest("[data-block]"))?.(groups);}}
   for (const item of next.values()) {
     if (!item.cleanup) item.cleanup = initPortfolio(item.node, window.St?.PageFlip);
   }
@@ -106,10 +114,11 @@ function render(data) {
   else window.scrollTo(0, scroll);
 }
 
+window.addEventListener('blur',()=>{if(pendingRender)requestAnimationFrame(()=>{if(pendingRender)render(pendingRender);});});
 window.addEventListener('message', e => {
   if (e.origin !== location.origin || e.source !== parent) return;
   if (e.data.type === 'render') {
-    try { render(e.data); }
+    try { measure('previewRender',()=>render(e.data)); }
     catch (error) { console.error(error);send({type:'preview-error', message:'The preview could not update. Use Refresh preview to retry.'}); }
   }
 });
@@ -158,7 +167,8 @@ function decorate(container,page,theme){
   container.querySelectorAll('[data-project-edit]').forEach(el=>{el.contentEditable='true';el.setAttribute('role','textbox');el.setAttribute('aria-label',el.dataset.projectEdit==='name'?'Artist name on page':'Portfolio description on page');});
   for(const b of page.blocks){
     const section=container.querySelector(`[data-block="${b.id}"]`);
-    if(section.querySelector(':scope > .block-tools'))continue;
+    styleContexts.set(section,{b,theme});
+    if(section.querySelector(':scope > .block-tools')){if(section.querySelector('.canvas-styles')?.open)stylePanels.get(section)?.();continue;}
     const toolbar=document.createElement('div');toolbar.className='editor-chrome block-tools';
     toolbar.innerHTML='<button class="grip" draggable="true" aria-label="Drag block">⠿</button><button data-action="up" aria-label="Move block up">↑</button><button data-action="down" aria-label="Move block down">↓</button><button data-action="duplicate">Duplicate</button>';
     toolbar.querySelector('.grip').ondragstart=e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','block:'+b.id);};
@@ -168,13 +178,21 @@ function decorate(container,page,theme){
       const fit=document.createElement('button');fit.textContent=b.fit==='cover'?'Show whole photo':'Crop to fill';fit.onclick=()=>send({type:'block-action',blockId:b.id,action:'fit'});toolbar.append(fit);
     }
     const styles=document.createElement('details');styles.className='editor-chrome canvas-styles';
-    styles.innerHTML=`<summary>Styles</summary><div class="canvas-style-fields"><p>Check a setting to override the site default.</p>${styleControls(theme,b.styles||{},esc)}<button data-reset-styles>Reset block styles</button></div>`;
-    wireStyleControls(styles,theme,b.styles||{},(key,value)=>{
-      if(value===null){if(b.styles)delete b.styles[key];}else (b.styles??={})[key]=value;
-      section.setAttribute('style',styleVars(b.styles,true));
-      send({type:'block-style',blockId:b.id,key,value});
-    });
-    styles.querySelector('[data-reset-styles]').onclick=()=>send({type:'reset-block-styles',blockId:b.id});
+    styles.innerHTML='<summary>Styles</summary><div class="canvas-style-fields"></div>';
+    const refreshStyles=(groups)=>{
+      const context=styleContexts.get(section),current=context.b;
+      const openGroups=groups||[...styles.querySelectorAll('.style-group[open]')].map(g=>g.dataset.styleGroup);
+      const fields=styles.querySelector('.canvas-style-fields');
+      fields.innerHTML=`<p>Check a setting to override the site default.</p>${styleControls(context.theme,current.styles||{},esc)}<button data-reset-styles>Reset block styles</button>`;
+      if(openGroups.length)fields.querySelectorAll('.style-group').forEach(g=>g.open=openGroups.includes(g.dataset.styleGroup));
+      wireStyleControls(fields,context.theme,current.styles||{},(key,value)=>{
+        if(value===null){if(current.styles)delete current.styles[key];}else (current.styles??={})[key]=value;
+        const play=section.style.getPropertyValue('--material-play');section.setAttribute('style',styleVars(current.styles,true));if(play)section.style.setProperty('--material-play',play);
+        send({type:'block-style',blockId:current.id,key,value});
+      });
+      fields.querySelector('[data-reset-styles]').onclick=()=>send({type:'reset-block-styles',blockId:current.id});
+    };
+    stylePanels.set(section,refreshStyles);styles.ontoggle=()=>{if(styles.open)refreshStyles();else styles.querySelector('.canvas-style-fields').replaceChildren();};
     toolbar.append(styles);
     section.querySelectorAll('img[data-asset-id]').forEach(img=>{
       const edit=document.createElement('button');edit.className='editor-chrome edit-image-context';edit.textContent='Edit image';edit.setAttribute('aria-label','Edit artwork image');
