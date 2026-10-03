@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Updates with actively written diagnostic logs",
+      "description": "Exclude transient root-level diagnostic logs from portfolio snapshots so the updater can back up data while its transcript is open. Verify locked-log handling, snapshot creation during a real updater transcript, data preservation and failed-install recovery.",
+      "commit": "902c3e47ccfcf6925507adeac713a358dda64100"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Protected artwork preview recovery",
       "description": "Fix image edit controls assuming an artwork link when download deterrence uses a non-link wrapper. Restore sketchbook initialization and page flipping after artwork and fill-page edits with protection enabled.",
       "commit": "ec50c1cb1db298da3977d6740c4a8aea62ca5318"
