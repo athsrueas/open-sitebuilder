@@ -129,6 +129,7 @@ Open **About** in the editor toolbar for these same credits and feature history.
 
 ### Feature history
 
+- **Lean Astro exports** — Remove editor metadata, unused block CSS and unselected material effects from published pages. Static sites emit no JavaScript; animation and sketchbook runtime files are generated only when used. <sub>2026-10-02 · [bbcf2b8](https://github.com/athsrueas/mirandasite/commit/bbcf2b8f1c9222d0e27557d39ec260b14451c1ef)</sub>
 - **Layered free layout and separate mobile canvas** — Arrange overlapping text and image layers directly on a prominent free canvas, resize and reorder layers, configure independent mobile positions, and automatically stack incomplete phone layouts. <sub>2026-10-02 · [ef86d23](https://github.com/athsrueas/mirandasite/commit/ef86d23307dab80fc5b3f685f3ae6b5c4b6e4b9e)</sub>
 - **Media deletion and File Explorer** — Delete an image and its placements with local file recovery in the Windows Recycle Bin, or open File Explorer with the original upload selected. Other edited versions are preserved. <sub>2026-10-02 · [d46ad5c](https://github.com/athsrueas/mirandasite/commit/d46ad5cf67254bb65c16b4077996c8a907bf9361)</sub>
 - **Visible block deletion and undo** — Delete blocks directly from the canvas toolbar or Pages list, and restore up to 20 recent deletions during the editor session. <sub>2026-10-02 · [018d43d](https://github.com/athsrueas/mirandasite/commit/018d43dadb0a0767c12a9e167282c2b71a59a1bf)</sub>
