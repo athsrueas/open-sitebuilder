@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Code backup management and safe server replacement",
+      "description": "Manage code backups from Updates, inspect sizes, reveal folders, recycle unwanted versions, and choose zero, one, three or unlimited retention. Preserve failed-update recovery copies and stop matching servers before installation or updates, with busy-build and concurrent-operation protection.",
+      "commit": "354fb44402460e4880076b9174d242afbdabe6e6"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Valid style inputs and automatic session recovery",
       "description": "Immediately clamp excessive numeric style entries, show allowed limits and steps, restore incomplete entries safely, and renew rotated local sessions without discarding unsaved edits.",
       "commit": "ac96a93d8373ac1338399da11a7819b4d5dfc11a"
