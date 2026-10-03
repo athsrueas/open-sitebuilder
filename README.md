@@ -122,6 +122,7 @@ Open **About** in the editor toolbar for these same credits and feature history.
 
 ### Feature history
 
+- **Animated coming-soon splash** — Editable full-screen landing layout with procedural watercolor paper, slow light and ink blooms, plus a reusable coming-soon portfolio example. <sub>2026-10-02 · [06fe1f8](https://github.com/athsrueas/mirandasite/commit/06fe1f8d16858ace665a3d6fee38828582b7a1aa)</sub>
 - **About, feature history and library credits** — Feature additions with linked commits, library-to-feature attributions, searchable dependency credits, and shared content synchronized with the README. <sub>2026-10-02 · [49136c1](https://github.com/athsrueas/mirandasite/commit/49136c1ade1139c1aa828e2d97d358a839bf294f)</sub>
 - **Performance and responsive layouts** — Incremental canvas previews, responsive image derivatives, background image processing, smaller exported scripts, and narrow-screen editor layouts. <sub>2026-10-02 · [6775461](https://github.com/athsrueas/mirandasite/commit/67754619d87a3b83236fc242536de819dc2ed59c)</sub>
 - **Paper and ink materials** — Procedural paper grain, fibers and weave, moving light, heading ink finishes, and pigment washes with motion preferences respected. <sub>2026-10-02 · [b8c6e11](https://github.com/athsrueas/mirandasite/commit/b8c6e112926f1f3b0b959328d33ac7ef5f81e94e)</sub>
