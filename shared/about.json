@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Protected artwork preview recovery",
+      "description": "Fix image edit controls assuming an artwork link when download deterrence uses a non-link wrapper. Restore sketchbook initialization and page flipping after artwork and fill-page edits with protection enabled.",
+      "commit": "ec50c1cb1db298da3977d6740c4a8aea62ca5318"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Full-page sketchbook artwork",
       "description": "Toggle edge-to-edge artwork on individual sketchbook pages from the canvas or Details. Hide titles, captions and page numbers while preserving the text, remove page padding, and apply the same layout to published sites.",
       "commit": "a361f5d0e80eaa570b5db210cb9d8c2c9f75e118"
