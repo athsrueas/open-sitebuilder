@@ -1,6 +1,10 @@
 param([switch]$NoLaunch, [switch]$NoShortcut)
 . "$PSScriptRoot\scripts\runtime.ps1"
 . "$PSScriptRoot\scripts\bootstrap.ps1"
+. "$PSScriptRoot/scripts/lifecycle.ps1"
+$SetupMutex = Enter-StudioOperation
+try {
+Stop-StudioInstance $StudioRoot
 Set-Location -LiteralPath $StudioRoot
 Write-Host '[1/4] Preparing private Python and Node.js runtimes...'
 $StudioRuntimes = Install-StudioRuntimes
@@ -28,3 +32,4 @@ if (!$NoShortcut) {
 }
 Write-Host 'Folio Studio is ready. Use Settings to save encrypted Cloudflare credentials; no .env is required.'
 if (!$NoLaunch) { & "$StudioRoot\launch.ps1" }
+} finally { $SetupMutex.ReleaseMutex(); $SetupMutex.Dispose() }

@@ -12,6 +12,8 @@ No existing Python, Node.js, pnpm, or Git installation is required. The installe
 
 The default installation folder is `%LOCALAPPDATA%\FolioStudio`. Your project, photos and encrypted publishing settings live in its `data` folder. The shortcut starts the local server in the background; **Settings → Close studio** stops it. Install only from a source you trust: the script runs application code and downloads dependencies.
 
+Install, setup and update stop the matching running server before changing files, wait for it to exit, and reopen the editor when complete. Launching again reuses the matching running server. Concurrent starts or updates are blocked, as are updates during a build or publish. Another installation using the port is left running; close it first. Save your edits before running a CMD file; the in-editor **Save and update** button saves first.
+
 For updates, download a new ZIP and run Install.cmd again; existing installed artwork and settings are preserved. Back up `data` first. To choose a different installation folder, run:
 
 ```powershell
@@ -26,7 +28,7 @@ Open **Updates** in the editor and choose **Save and update** when a newer versi
 
 An installation made before version 0.2.0 needs one manual update: download the latest ZIP and run Install.cmd again. Subsequent versions can offer updates inside the editor. Development Git checkouts are protected from the installed-app updater; update those using Git.
 
-Updates preserve `data`, artwork, encrypted credentials and optional `.env` values. Previous application files are saved under `data/update-backups`; a failed installation restores those files. Dependency changes may still need repair by rerunning setup.ps1. Check `data/update.log` if an update fails. Staging downloads are sent to the Windows Recycle Bin after the attempt; code backups remain for recovery. Empty the Recycle Bin to reclaim that space.
+Updates preserve `data`, artwork, encrypted credentials and optional `.env` values. Previous application files are saved under `data/update-backups`; a failed installation restores those files. Dependency changes may still need repair by rerunning setup.ps1. Check `data/update.log` if an update fails. Staging downloads are sent to the Windows Recycle Bin after the attempt; code backups keep the latest successful-update recovery copy by default. Open **Updates → Manage code backups** to inspect sizes, show a backup in File Explorer, remove it to the Recycle Bin, or choose to keep none, one, three or all. Applying retention also removes existing backups beyond the selected limit. Failed updates retain their recovery copy. These code backups do not include portfolio data, artwork or credentials; back up `data` separately. Empty the Recycle Bin to reclaim that space.
 
 The updater downloads a commit-pinned archive from `athsrueas/open-sitebuilder` on GitHub over HTTPS and validates its version. Releases are not independently signed: only update if you trust that repository and its maintainers. Maintainers must increase the semantic version in `package.json` when publishing updates; edits without a version increase do not trigger an update offer.
 

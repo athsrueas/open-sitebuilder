@@ -1,5 +1,6 @@
 """Folio Studio: loopback-only editor and static Astro publisher."""
 import argparse
+import hashlib
 import copy
 import io
 import json
@@ -19,6 +20,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from dotenv import dotenv_values, unset_key
 from credentials import read_credentials, write_credentials
 from updates import check_update
+import backups
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / 'data'
@@ -440,6 +442,12 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/api/project':
             with LOCK:
                 return self.reply(200, load_project())
+        if path == '/api/instance':
+            return self.reply(200, {'appId': hashlib.sha256(str(ROOT.resolve()).rstrip('\\').lower().encode()).hexdigest(),
+                'pid': os.getpid(), 'version': json.loads((ROOT / 'package.json').read_text())['version']})
+        if path == '/api/backups':
+            with LOCK:
+                return self.reply(200, {'keep': backups.retention(DATA), 'items': backups.inventory(DATA)})
         if path == '/api/updates':
             try:
                 return self.reply(200, check_update(ROOT, refresh='refresh=1' in self.path))
@@ -492,6 +500,27 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/api/upload':
                 return self.upload(body)
             value = json.loads(body)
+            if path.startswith('/api/backups/'):
+                if not JOB_LOCK.acquire(blocking=False): raise ValueError('Wait for the current build or publish to finish.')
+                try:
+                    with LOCK:
+                        if path == '/api/backups/settings':
+                            keep = value.get('keep')
+                            if type(keep) is not int or keep not in backups.KEEP_CHOICES: raise ValueError('Invalid backup retention choice.')
+                            atomic_json(DATA / 'backup-settings.json', {'keep': keep})
+                            results = backups.prune(DATA, recycle_media_folder)
+                        elif path == '/api/backups/delete':
+                            results = [backups.remove(DATA, value.get('id'), recycle_media_folder)]
+                        elif path == '/api/backups/reveal':
+                            uid = value.get('id')
+                            if uid not in {item['id'] for item in backups.inventory(DATA)}: raise ValueError('Unknown code backup.')
+                            if os.name != 'nt': raise ValueError('File Explorer is available on Windows.')
+                            subprocess.Popen(['explorer.exe', str(DATA / 'update-backups' / uid)])
+                            results = []
+                        else: raise ValueError('Unknown backup action.')
+                    return self.reply(200, {'ok': True, 'recoveryFolders': [r['recoveryFolder'] for r in results if not r['recycled']]})
+                finally:
+                    JOB_LOCK.release()
             if path == '/api/media/reveal':
                 reveal_image(value.get('id'))
                 return self.reply(200, {'ok': True})

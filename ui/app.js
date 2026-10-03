@@ -221,5 +221,6 @@ async function checkUpdates(refresh=false){
 }
 $('#updates').onclick=()=>{$('#updates-dialog').showModal();checkUpdates();};
 $('#check-updates').onclick=()=>checkUpdates(true);
+$('#manage-backups').onclick=async()=>{try{await (await import('/ui/backups.js')).openBackups(api);}catch(error){toast(error.message);}};
 $('#install-update').onclick=async()=>{const button=$('#install-update');button.disabled=true;try{await save();await api('update',{});$('#update-status').textContent='Updating. The editor will reopen when complete. If an error occurs, check data/update.log.';$('#save-status').textContent='All changes saved';}catch(error){$('#update-status').textContent=error.message;button.disabled=false;}};
 checkUpdates();

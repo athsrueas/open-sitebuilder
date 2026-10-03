@@ -4,10 +4,14 @@ param(
     [switch]$NoShortcut
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'scripts/lifecycle.ps1')
 $SourceRoot = $PSScriptRoot
 $DestinationRoot = [IO.Path]::GetFullPath($InstallDirectory)
 if ($DestinationRoot -eq [IO.Path]::GetPathRoot($DestinationRoot)) { throw 'Choose an application folder, not a drive root.' }
 New-Item -ItemType Directory -Path $DestinationRoot -Force | Out-Null
+$InstallMutex = Enter-StudioOperation
+try {
+Stop-StudioInstance $DestinationRoot
 Write-Host "Installing Folio Studio in $DestinationRoot"
 function Copy-StudioFolder($Source, $Destination) {
     New-Item -ItemType Directory -Path $Destination -Force | Out-Null
@@ -30,3 +34,4 @@ if ($SourceRoot -ne $DestinationRoot) {
     }
 }
 & (Join-Path $DestinationRoot 'setup.ps1') -NoLaunch:$NoLaunch -NoShortcut:$NoShortcut
+} finally { $InstallMutex.ReleaseMutex(); $InstallMutex.Dispose() }
