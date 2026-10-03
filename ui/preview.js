@@ -202,8 +202,10 @@ function decorate(container,page,theme){
     stylePanels.set(section,refreshStyles);styles.ontoggle=()=>{if(styles.open)refreshStyles();else styles.querySelector('.canvas-style-fields').replaceChildren();};
     toolbar.append(styles);
     section.querySelectorAll('img[data-asset-id]').forEach(img=>{
+      const artwork=img.closest('.artwork-view');
+      if(!artwork)return; // Free-layout images have their own contextual controls.
       const edit=document.createElement('button');edit.className='editor-chrome edit-image-context';edit.textContent='Edit image';edit.setAttribute('aria-label','Edit artwork image');
-      const anchor=img.closest('a');anchor.classList.add('editable-artwork');if(b.type==='cover')toolbar.append(edit);else anchor.append(edit);
+      artwork.classList.add('editable-artwork');if(b.type==='cover')toolbar.append(edit);else artwork.append(edit);
       edit.onclick=e=>{e.preventDefault();e.stopPropagation();send({type:'edit-image',blockId:b.id,assetId:img.dataset.assetId,spreadId:img.closest('[data-spread-id]')?.dataset.spreadId,imageIndex:b.images.indexOf(img.dataset.assetId)});};
     });
     section.prepend(toolbar);
