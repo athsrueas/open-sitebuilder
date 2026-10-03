@@ -259,6 +259,29 @@ class LocalApiTests(unittest.TestCase):
         self.assertFalse((public / (unused['id'] + '.webp')).exists())
         self.assertEqual(len(project['assets']), 2)
         self.assertEqual(len(server.load_project()['assets']), 2)
+        project['discourageImageDownloads'] = True
+        with patch.object(server, 'ROOT', root), patch.object(server, 'node_command', return_value=['test']), patch.object(server.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout='', stderr='')):
+            server.build_project(project)
+        self.assertFalse((public / (active['id'] + '-full.webp')).exists())
+        self.assertTrue((server.DATA / 'media' / (active['id'] + '-full.webp')).exists())
+        project['discourageImageDownloads'] = False
+        with patch.object(server, 'ROOT', root), patch.object(server, 'node_command', return_value=['test']), patch.object(server.subprocess, 'run', return_value=SimpleNamespace(returncode=0, stdout='', stderr='')):
+            server.build_project(project)
+        self.assertTrue((public / (active['id'] + '-full.webp')).exists())
+
+    def test_update_action_requires_session_and_protects_checkout(self):
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            self.request('/api/update', {}, token=False)
+        self.assertEqual(error.exception.code, 403)
+        with patch.object(server, 'check_update', return_value={'managed':False,'available':True}):
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                self.request('/api/update', {})
+            self.assertEqual(error.exception.code, 400)
+
+    def test_offline_update_check_returns_actionable_message(self):
+        with patch.object(server, 'check_update', side_effect=ValueError('offline')):
+            response = json.load(self.request('/api/updates'))
+        self.assertIn('internet',response['error'])
 
     def test_edited_image_versions_preserve_alpha_and_source(self):
         source = io.BytesIO()

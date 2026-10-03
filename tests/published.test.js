@@ -5,6 +5,16 @@ import {prunePublishedCss,pageFeatures} from '../shared/published.js';
 import {BLOCKS} from '../shared/blocks.js';
 import {newLayer} from '../shared/free-layout.js';
 const project=()=>({name:'Artist',description:'',theme:{},assets:[],pages:[{id:'p',title:'Work',slug:'work',blocks:[{id:'b',type:'text',title:'Title',text:'Body',label:'',styles:{}}]}]});
+test('image saving deterrent removes full-size links while retaining layout and alt text',()=>{
+ const p=project();p.assets=[{id:'photo',src:'/media/photo.webp',full:'/media/photo-full.webp',width:2400,height:1600,alt:'Artwork description'}];
+ p.pages[0].blocks=[{id:'b',type:'gallery',title:'Work',label:'',images:['photo'],fit:'contain'}];
+ const normal=portfolioMarkup(p,'p',{published:true});assert.match(normal.html,/photo-full.webp/);assert.equal(normal.features.protection,false);
+ p.discourageImageDownloads=true;const protectedView=portfolioMarkup(p,'p',{published:true});
+ assert.doesNotMatch(protectedView.html,/photo-full.webp/);assert.match(protectedView.html,/<span class="artwork-view"/);
+ assert.match(protectedView.html,/alt="Artwork description"/);assert.match(protectedView.css,/\.gallery \.artwork-view/);
+ assert.equal(protectedView.features.protection,true);
+ p.pages[0].blocks=[];assert.equal(pageFeatures(p,p.pages[0]).protection,false);
+});
 test('static exports discard editor metadata, materials and unused block CSS',()=>{
  const p=project(),editor=portfolioMarkup(p,'p'),out=portfolioMarkup(p,'p',{published:true});
  assert.doesNotMatch(out.html,/data-edit|data-block|data-project-edit|material-layers|material-defs/);

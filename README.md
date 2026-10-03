@@ -20,6 +20,22 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -InstallDirect
 
 Developers can run `setup.ps1` in a checkout to install the private runtimes there, or run `python server.py --no-browser --port 4873` with their own dependencies.
 
+## Updating an installed copy
+
+Open **Updates** in the editor and choose **Save and update** when a newer version is available. The editor checks the public GitHub repository at startup, with a 15-minute cache; **Check again** refreshes it. Checks send no artwork or publishing credentials. Updates run only after you choose them. The updater closes the editor, installs into the existing application folder and reopens it. You can also close the editor and double-click `Update.cmd` in the installed folder.
+
+An installation made before version 0.2.0 needs one manual update: download the latest ZIP and run Install.cmd again. Subsequent versions can offer updates inside the editor. Development Git checkouts are protected from the installed-app updater; update those using Git.
+
+Updates preserve `data`, artwork, encrypted credentials and optional `.env` values. Previous application files are saved under `data/update-backups`; a failed installation restores those files. Dependency changes may still need repair by rerunning setup.ps1. Check `data/update.log` if an update fails. Staging downloads are sent to the Windows Recycle Bin after the attempt; code backups remain for recovery. Empty the Recycle Bin to reclaim that space.
+
+The updater downloads a commit-pinned archive from `athsrueas/open-sitebuilder` on GitHub over HTTPS and validates its version. Releases are not independently signed: only update if you trust that repository and its maintainers. Maintainers must increase the semantic version in `package.json` when publishing updates; edits without a version increase do not trigger an update offer.
+
+## Artwork download setting
+
+In **Settings → Artwork downloads**, enable **Discourage image downloads on the published site**. It removes full-size artwork links, leaves the 5,000 px image copies out of new exports, and discourages image dragging, right-click saving and mobile image callouts. Text selection and normal navigation remain available. Publish again to apply it; old deployments and copies already saved by visitors cannot be recalled.
+
+This is a deterrent, not copy protection. Displayed web images can still be retrieved, and a website cannot reliably prevent screenshots. Local originals remain untouched. See [image viewing and protection options](docs/IMAGE-PROTECTION.md) for thumbnail/lightbox, tiled zoom and private image delivery designs.
+
 ## Media management and image editing
 
 Open **Media** for the dedicated import and management screen. Import several JPEG/PNG/WebP images, search names and descriptions, edit file names and alt text, view image versions, download original files, add images to the current page, and archive/restore library entries. Archive hides an image without deleting it or breaking existing pages. **Show in File Explorer** opens Windows Explorer with the original upload selected. **Delete image** removes the selected image and its page placements, preserves other edited versions, and sends original/processed/generated copies to the Windows Recycle Bin after confirmation. If recycling is unavailable, recovery files stay in `data/trash` and the editor shows that location. Existing live deployments change only after publishing again.

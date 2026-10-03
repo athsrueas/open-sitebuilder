@@ -18,6 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from PIL import Image, ImageOps, UnidentifiedImageError
 from dotenv import dotenv_values, unset_key
 from credentials import read_credentials, write_credentials
+from updates import check_update
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / 'data'
@@ -120,6 +121,8 @@ def validate_project(p):
         raise ValueError('Unsupported project format.')
     if p.get('presentation', 'portfolio') not in ('portfolio', 'splash'):
         raise ValueError('Invalid portfolio presentation.')
+    if not isinstance(p.get('discourageImageDownloads', False), bool):
+        raise ValueError('Invalid image download setting.')
     for key in ('name', 'description'):
         if not isinstance(p.get(key), str) or len(p[key]) > 5000:
             raise ValueError('Invalid artist details.')
@@ -237,11 +240,13 @@ def build_project(project):
     # Remove stale generated derivatives so unused versions are not published.
     for path in public.iterdir():
         match = re.fullmatch(r'([a-f0-9]{32})(?:-full|-thumb|-medium)?\.webp', path.name)
-        if match and match[1] not in used and path.is_file() and path.resolve().is_relative_to(public.resolve()):
+        if match and (match[1] not in used or project.get('discourageImageDownloads') and path.name.endswith('-full.webp')) and path.is_file() and path.resolve().is_relative_to(public.resolve()):
             path.unlink()
     # Only processed images are published. The original uploads stay in data/originals.
     for asset in project['assets']:
         for key in ('src', 'full', 'thumb', 'medium'):
+            if key == 'full' and project.get('discourageImageDownloads'):
+                continue
             filename = Path(asset[key]).name
             shutil.copy2(DATA / 'media' / filename, public / filename)
     result = subprocess.run(node_command('node_modules/astro/bin/astro.mjs', 'build', '--root', 'site'), cwd=ROOT,
@@ -435,6 +440,11 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/api/project':
             with LOCK:
                 return self.reply(200, load_project())
+        if path == '/api/updates':
+            try:
+                return self.reply(200, check_update(ROOT, refresh='refresh=1' in self.path))
+            except Exception:
+                return self.reply(200, {'error': 'Could not check updates. Check internet access and try again.'})
         if path == '/api/config':
             config, token = cloudflare_settings()
             config['hasToken'] = bool(token)
@@ -506,6 +516,22 @@ class Handler(BaseHTTPRequestHandler):
                     validate_project(value)
                     atomic_json(DATA / 'project.json', value)
                 return self.reply(200, {'ok': True})
+            if path == '/api/update':
+                if JOB_LOCK.locked():
+                    raise ValueError('Wait for the build or publish to finish before updating.')
+                update = check_update(ROOT, refresh=True)
+                if not update['managed']:
+                    raise ValueError('This is a development checkout. Use Git to update it.')
+                if not update['available']:
+                    raise ValueError('Folio Studio is already up to date.')
+                if os.name != 'nt':
+                    raise ValueError('The automatic installer supports Windows only.')
+                subprocess.Popen(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden',
+                    '-File', str(ROOT / 'Update.ps1'), '-WaitForProcessId', str(os.getpid())], cwd=ROOT,
+                    creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+                self.reply(202, {'ok': True})
+                threading.Thread(target=self.server.shutdown, daemon=True).start()
+                return
             if path == '/api/config':
                 config = {'accountId': value.get('accountId', '').strip(), 'projectName': value.get('projectName', '').strip()}
                 if config['accountId'] and not re.fullmatch(r'[a-f0-9]{32}', config['accountId']):

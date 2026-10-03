@@ -204,11 +204,26 @@ $('#mobile').onclick=()=>{ $('#preview').classList.add('mobile');$('#mobile').cl
 $('#preview').addEventListener('load',()=>preview());
 $('#refresh').onclick=()=>{ $('#preview').src='/ui/preview.html?refresh='+Date.now(); };
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).close());
-$('#settings').onclick=async()=>{try{const c=await api('config'),form=$('#settings-form');for(const key of ['name','description'])form.elements[key].value=project[key];for(const key of ['accountId','projectName'])form.elements[key].value=c[key];form.elements.splash.checked=project.presentation==='splash';form.elements.token.value='';form.elements.token.placeholder=c.hasToken?'Token is already set; leave blank to keep it':'Encrypted for this Windows user';if(c.credentialError)toast(c.credentialError);$('#settings-dialog').showModal();}catch(e){toast(e.message);}};
-$('#settings-form').onsubmit=async e=>{e.preventDefault();try{const fields=Object.fromEntries(new FormData(e.target));await api('config',fields);project.name=fields.name;project.description=fields.description;project.presentation=fields.splash?'splash':'portfolio';changed(true);await save();e.target.elements.token.value='';$('#settings-dialog').close();toast('Settings saved.');}catch(err){toast(err.message);}};
+$('#settings').onclick=async()=>{try{const c=await api('config'),form=$('#settings-form');for(const key of ['name','description'])form.elements[key].value=project[key];for(const key of ['accountId','projectName'])form.elements[key].value=c[key];form.elements.splash.checked=project.presentation==='splash';form.elements.discourageImageDownloads.checked=!!project.discourageImageDownloads;form.elements.token.value='';form.elements.token.placeholder=c.hasToken?'Token is already set; leave blank to keep it':'Encrypted for this Windows user';if(c.credentialError)toast(c.credentialError);$('#settings-dialog').showModal();}catch(e){toast(e.message);}};
+$('#settings-form').onsubmit=async e=>{e.preventDefault();try{const fields=Object.fromEntries(new FormData(e.target));await api('config',fields);project.name=fields.name;project.description=fields.description;project.presentation=fields.splash?'splash':'portfolio';project.discourageImageDownloads=!!fields.discourageImageDownloads;changed(true);await save();e.target.elements.token.value='';$('#settings-dialog').close();toast('Settings saved.');}catch(err){toast(err.message);}};
 async function runJob(action){try{await save();await api(action,{});$('#job-title').textContent=action==='publish'?'Publishing your portfolio':'Building your portfolio';$('#job-message').textContent='Preparing your site…';$('#job-link').hidden=true;$('#job-dialog').showModal();pollJob();}catch(e){toast(e.message);}}
 async function pollJob(){try{const job=await api('job');$('#job-message').textContent=job.message;if(job.state==='running'){setTimeout(pollJob,1000);return;}$('#job-title').textContent=job.state==='error'?'Something needs attention':job.url?.startsWith('https:')?'Your portfolio is live':'Your build is ready';if(job.url){$('#job-link').href=job.url;$('#job-link').hidden=false;}}catch(e){$('#job-message').textContent=e.message;}}
 $('#build').onclick=()=>runJob('build');$('#publish').onclick=()=>runJob('publish');
 $('#stop-studio').onclick=async()=>{try{await save();await api('shutdown',{});$('#settings-dialog').close();$('#save-status').textContent='Studio closed';toast('The studio has stopped. Use the desktop shortcut to open it again.');}catch(e){toast(e.message);}};
 window.addEventListener('beforeunload',e=>{if($('#save-status').textContent!=='All changes saved'){e.preventDefault();e.returnValue='';}});
 try{project=await api('project');pageId=project.pages[0].id;blockId=page().blocks[0]?.id;render();preview();$('#save-status').textContent='All changes saved';}catch(e){toast(e.message);}
+
+async function checkUpdates(refresh=false){
+  $('#update-status').textContent='Checking for updates…';$('#install-update').hidden=true;
+  try{const result=await api('updates'+(refresh?'?refresh=1':''));
+    if(result.error){$('#update-status').textContent=result.error;return;}
+    $('#update-status').textContent=result.available?`Version ${result.latest} is available. Installed: ${result.current}.`:`Version ${result.current} is up to date.`;
+    if(result.available&&!result.managed)$('#update-status').textContent+=' This development checkout must be updated with Git.';
+    $('#install-update').hidden=!(result.available&&result.managed);
+    $('#updates').textContent=result.available?'Update available':'Updates';
+  }catch(error){$('#update-status').textContent=error.message;}
+}
+$('#updates').onclick=()=>{$('#updates-dialog').showModal();checkUpdates();};
+$('#check-updates').onclick=()=>checkUpdates(true);
+$('#install-update').onclick=async()=>{const button=$('#install-update');button.disabled=true;try{await save();await api('update',{});$('#update-status').textContent='Updating. The editor will reopen when complete. If an error occurs, check data/update.log.';$('#save-status').textContent='All changes saved';}catch(error){$('#update-status').textContent=error.message;button.disabled=false;}};
+checkUpdates();

@@ -3,7 +3,8 @@ import {siteStyles} from './styles.js';
 export function pageFeatures(project,page){
   const base=siteStyles(project.theme);
   const materials=page.blocks.map(b=>({...base,...b.styles}));
-  return {books:page.blocks.some(b=>b.type==='sketchbook'),motion:materials.some(v=>v.paperMotion==='soft-light'||['bloom','drift'].includes(v.inkWash)),materials};
+  const protection=!!project.discourageImageDownloads&&page.blocks.some(b=>[...(b.images||[]),...(b.spreads||[]).map(s=>s.image),...(b.layers||[]).map(l=>l.assetId)].some(id=>project.assets.some(a=>a.id===id)));
+  return {protection,books:page.blocks.some(b=>b.type==='sketchbook'),motion:materials.some(v=>v.paperMotion==='soft-light'||['bloom','drift'].includes(v.inkWash)),materials};
 }
 export function publishedLayers(v){
   const grain=v.paperTexture!=='none'?'<span class="paper-grain"></span>':'';

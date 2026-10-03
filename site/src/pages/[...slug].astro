@@ -13,6 +13,7 @@ const { css, html,features } = portfolioMarkup(project, page.id,{published:true}
   <body>
     <style is:inline set:html={css}></style>
     <div id="portfolio" set:html={html}></div>
+    {features.protection && <script is:inline defer src="/folio-assets/image-protection.js"></script>}
     {features.books && <script is:inline defer src="/folio-assets/page-flip.js"></script>}
     {features.books && <script is:inline defer src="/folio-assets/books.js"></script>}
     {features.motion && !features.books && <script is:inline defer src="/folio-assets/materials.js"></script>}
