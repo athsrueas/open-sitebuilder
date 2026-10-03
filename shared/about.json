@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Full-page sketchbook artwork",
+      "description": "Toggle edge-to-edge artwork on individual sketchbook pages from the canvas or Details. Hide titles, captions and page numbers while preserving the text, remove page padding, and apply the same layout to published sites.",
+      "commit": "a361f5d0e80eaa570b5db210cb9d8c2c9f75e118"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Sketchbooks without a fixed page limit",
       "description": "Remove the 200-page save cap, add sketchbook pages directly from the canvas toolbar, and display the current page count. Verify validation and static export of 1,000 pages without truncation.",
       "commit": "ffb6a6ab5408107449b9128deb052967c5812a50"
