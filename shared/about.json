@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-02",
+      "title": "Media deletion and File Explorer",
+      "description": "Delete an image and its placements with local file recovery in the Windows Recycle Bin, or open File Explorer with the original upload selected. Other edited versions are preserved.",
+      "commit": "d46ad5cf67254bb65c16b4077996c8a907bf9361"
+    },
+    {
+      "date": "2026-10-02",
       "title": "Visible block deletion and undo",
       "description": "Delete blocks directly from the canvas toolbar or Pages list, and restore up to 20 recent deletions during the editor session.",
       "commit": "018d43dadb0a0767c12a9e167282c2b71a59a1bf"
@@ -156,6 +162,6 @@
       "detail": "Uploads the built static site to the configured Pages project using the Cloudflare API. Invoked by the Python server when Publish is selected."
     }
   ],
-  "implementationNote": "Canvas text editing, block drag-and-drop, adjustment sliders, erase/restore brushes, workspace decorations, and procedural paper/ink use Folio Studio code with native browser APIs. No separate material or AI segmentation library is incorporated. System fonts need no font service.",
+  "implementationNote": "Canvas text editing, block drag-and-drop, adjustment sliders, erase/restore brushes, workspace decorations, and procedural paper/ink use Folio Studio code with native browser APIs. No separate material or AI segmentation library is incorporated. System fonts need no font service. File Explorer selection and Recycle Bin operations use native Windows shell APIs with no additional library.",
   "inventoryNote": "The expandable inventory lists installed JavaScript packages, including indirect build and publishing dependencies. These packages support the direct libraries above; they are not all delivered to visitors. Versions and declared licenses come from installed package metadata. Package license files and upstream notices remain authoritative. Python dependency ranges come from requirements.txt."
 }
