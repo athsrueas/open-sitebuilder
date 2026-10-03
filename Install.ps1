@@ -1,10 +1,12 @@
 param(
     [string]$InstallDirectory = (Join-Path $env:LOCALAPPDATA 'FolioStudio'),
     [switch]$NoLaunch,
-    [switch]$NoShortcut
+    [switch]$NoShortcut,
+    [switch]$DeferBackupRetention
 )
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'scripts/lifecycle.ps1')
+. (Join-Path $PSScriptRoot 'scripts/backups.ps1')
 $SourceRoot = $PSScriptRoot
 $DestinationRoot = [IO.Path]::GetFullPath($InstallDirectory)
 if ($DestinationRoot -eq [IO.Path]::GetPathRoot($DestinationRoot)) { throw 'Choose an application folder, not a drive root.' }
@@ -12,6 +14,7 @@ New-Item -ItemType Directory -Path $DestinationRoot -Force | Out-Null
 $InstallMutex = Enter-StudioOperation
 try {
 Stop-StudioInstance $DestinationRoot
+$PortfolioBackup = New-StudioPortfolioBackup $DestinationRoot
 Write-Host "Installing Folio Studio in $DestinationRoot"
 function Copy-StudioFolder($Source, $Destination) {
     New-Item -ItemType Directory -Path $Destination -Force | Out-Null
@@ -34,4 +37,8 @@ if ($SourceRoot -ne $DestinationRoot) {
     }
 }
 & (Join-Path $DestinationRoot 'setup.ps1') -NoLaunch:$NoLaunch -NoShortcut:$NoShortcut
+if (!$?) { throw 'Installation failed. The portfolio snapshot has been retained.' }
+if (!$DeferBackupRetention) {
+    try { Remove-StudioOldPortfolioBackups $DestinationRoot } catch { Write-Warning "Installation succeeded, but older portfolio snapshots could not be recycled: $($_.Exception.Message)" }
+}
 } finally { $InstallMutex.ReleaseMutex(); $InstallMutex.Dispose() }

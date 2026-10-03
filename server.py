@@ -447,7 +447,8 @@ class Handler(BaseHTTPRequestHandler):
                 'pid': os.getpid(), 'version': json.loads((ROOT / 'package.json').read_text())['version']})
         if path == '/api/backups':
             with LOCK:
-                return self.reply(200, {'keep': backups.retention(DATA), 'items': backups.inventory(DATA)})
+                return self.reply(200, {'keep': backups.retention(DATA), 'items': backups.inventory(DATA),
+                    'portfolioKeep': backups.retention(DATA, 'portfolio'), 'portfolioItems': backups.inventory(DATA, 'portfolio')})
         if path == '/api/updates':
             try:
                 return self.reply(200, check_update(ROOT, refresh='refresh=1' in self.path))
@@ -504,18 +505,22 @@ class Handler(BaseHTTPRequestHandler):
                 if not JOB_LOCK.acquire(blocking=False): raise ValueError('Wait for the current build or publish to finish.')
                 try:
                     with LOCK:
+                        kind = value.get('kind', 'code')
+                        backups.backup_root(DATA, kind)
                         if path == '/api/backups/settings':
                             keep = value.get('keep')
                             if type(keep) is not int or keep not in backups.KEEP_CHOICES: raise ValueError('Invalid backup retention choice.')
-                            atomic_json(DATA / 'backup-settings.json', {'keep': keep})
-                            results = backups.prune(DATA, recycle_media_folder)
+                            settings = {'keep': backups.retention(DATA), 'portfolioKeep': backups.retention(DATA, 'portfolio')}
+                            settings['keep' if kind == 'code' else 'portfolioKeep'] = keep
+                            atomic_json(DATA / 'backup-settings.json', settings)
+                            results = backups.prune(DATA, recycle_media_folder, kind)
                         elif path == '/api/backups/delete':
-                            results = [backups.remove(DATA, value.get('id'), recycle_media_folder)]
+                            results = [backups.remove(DATA, value.get('id'), recycle_media_folder, kind)]
                         elif path == '/api/backups/reveal':
                             uid = value.get('id')
-                            if uid not in {item['id'] for item in backups.inventory(DATA)}: raise ValueError('Unknown code backup.')
+                            if uid not in {item['id'] for item in backups.inventory(DATA, kind)}: raise ValueError('Unknown backup.')
                             if os.name != 'nt': raise ValueError('File Explorer is available on Windows.')
-                            subprocess.Popen(['explorer.exe', str(DATA / 'update-backups' / uid)])
+                            subprocess.Popen(['explorer.exe', str(backups.backup_root(DATA, kind) / uid)])
                             results = []
                         else: raise ValueError('Unknown backup action.')
                     return self.reply(200, {'ok': True, 'recoveryFolders': [r['recoveryFolder'] for r in results if not r['recycled']]})

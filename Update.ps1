@@ -49,11 +49,12 @@ try {
     New-Item -ItemType Directory -Path $BackupRoot -Force | Out-Null
     Copy-ApplicationCode $AppRoot $BackupRoot
     $BackupReady = $true
-    & (Join-Path $Source 'Install.ps1') -InstallDirectory $AppRoot -NoLaunch -NoShortcut
+    & (Join-Path $Source 'Install.ps1') -InstallDirectory $AppRoot -NoLaunch -NoShortcut -DeferBackupRetention
     if (!$?) { throw 'Update installation failed.' }
     Write-Host "Updated to $($Latest.version). Code backup: $BackupRoot"
     if (!$NoLaunch) { & (Join-Path $AppRoot 'launch.ps1') }
     try { Remove-StudioOldBackups $AppRoot } catch { Write-Warning "Update succeeded, but old backups could not be recycled: $($_.Exception.Message)" }
+    try { Remove-StudioOldPortfolioBackups $AppRoot } catch { Write-Warning "Update succeeded, but old portfolio snapshots could not be recycled: $($_.Exception.Message)" }
 } catch {
     if ($BackupReady) {
         Copy-ApplicationCode $BackupRoot $AppRoot

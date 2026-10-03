@@ -1,5 +1,6 @@
 node_modules/
 data/
+portfolio-backups/
 site/public/media/
 site/src/project.json
 site/dist/
