@@ -16,7 +16,8 @@ import uuid
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from PIL import Image, ImageOps, UnidentifiedImageError
-from dotenv import dotenv_values, set_key
+from dotenv import dotenv_values, unset_key
+from credentials import read_credentials, write_credentials
 
 ROOT = Path(__file__).resolve().parent
 DATA = ROOT / 'data'
@@ -31,24 +32,40 @@ STYLES = json.loads((ROOT / 'shared/styles.json').read_text(encoding='utf-8'))
 BLOCKS = json.loads((ROOT / 'shared/blocks.json').read_text(encoding='utf-8'))
 
 def cloudflare_settings():
-    """Read fresh values so editing .env does not require an app restart."""
+    """Environment overrides encrypted settings; .env remains an import fallback."""
     values = dotenv_values(ENV_FILE, encoding='utf-8-sig')
+    error = ''
+    try:
+        saved = read_credentials(DATA / 'credentials.dat')
+    except ValueError as exc:
+        saved, error = {}, str(exc)
     legacy = json.loads((DATA / 'cloudflare.json').read_text()) if (DATA / 'cloudflare.json').exists() else {}
     def setting(key, fallback=''):
-        return (os.environ.get(key) or values.get(key) or fallback).strip()
-    return {
-        'accountId': setting('CLOUDFLARE_ACCOUNT_ID', legacy.get('accountId', '')),
-        'projectName': setting('CLOUDFLARE_PAGES_PROJECT', legacy.get('projectName', '')),
-    }, setting('CLOUDFLARE_API_TOKEN')
+        return (os.environ.get(key) or saved.get(key) or values.get(key) or fallback).strip()
+    config = {'accountId': setting('CLOUDFLARE_ACCOUNT_ID', legacy.get('accountId', '')),
+              'projectName': setting('CLOUDFLARE_PAGES_PROJECT', legacy.get('projectName', '')),
+              'credentialStorage': 'windows-encrypted' if saved else 'environment' if os.environ.get('CLOUDFLARE_API_TOKEN') else 'env-import' if values.get('CLOUDFLARE_API_TOKEN') else 'unset'}
+    if error: config['credentialError'] = error
+    return config, setting('CLOUDFLARE_API_TOKEN')
+
 
 def save_cloudflare_settings(config, token):
-    """Keep credentials in the private root .env, outside the generated site."""
-    ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
-    for key, value in (('CLOUDFLARE_ACCOUNT_ID', config['accountId']),
-                       ('CLOUDFLARE_PAGES_PROJECT', config['projectName'])):
-        set_key(str(ENV_FILE), key, value, quote_mode='always', encoding='utf-8-sig')
-    if token:
-        set_key(str(ENV_FILE), 'CLOUDFLARE_API_TOKEN', token, quote_mode='always', encoding='utf-8-sig')
+    """Encrypt before removing the three optional legacy .env entries."""
+    previous, previous_token = cloudflare_settings()
+    if previous.get('credentialError') and not token:
+        raise ValueError(previous['credentialError'])
+    values = {'CLOUDFLARE_ACCOUNT_ID': config['accountId'],
+              'CLOUDFLARE_PAGES_PROJECT': config['projectName'],
+              'CLOUDFLARE_API_TOKEN': token or previous_token}
+    write_credentials(DATA / 'credentials.dat', values)
+    # Read back successfully before touching a user's plaintext import file.
+    if read_credentials(DATA / 'credentials.dat') != values:
+        raise ValueError('Encrypted settings verification failed. Your .env has been preserved.')
+    if ENV_FILE.exists():
+        for key in values:
+            if key in dotenv_values(ENV_FILE, encoding='utf-8-sig'):
+                unset_key(str(ENV_FILE), key, encoding='utf-8-sig')
+
 
 def identifier():
     return uuid.uuid4().hex

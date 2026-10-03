@@ -1,7 +1,7 @@
 {
   "name": "Folio Studio",
   "description": "A local art portfolio editor with static site export and Cloudflare Pages publishing.",
-  "repository": "https://github.com/athsrueas/mirandasite",
+  "repository": "https://github.com/athsrueas/open-sitebuilder",
   "history": [
     {
       "date": "2026-10-02",
@@ -161,8 +161,8 @@
       "version": ">=1.0,<2",
       "license": "BSD-3-Clause",
       "repository": "https://github.com/theskumar/python-dotenv",
-      "feature": "Local publishing configuration",
-      "detail": "Reads and writes the private .env configuration for the Cloudflare token, account and Pages project. Credentials stay outside portfolio content and generated pages."
+      "feature": "Legacy configuration import",
+      "detail": "Reads optional .env publishing settings and removes imported Cloudflare entries after Windows-encrypted storage is verified. Credentials stay outside portfolio content and generated pages."
     },
     {
       "package": "wrangler",
@@ -174,6 +174,6 @@
       "detail": "Uploads the built static site to the configured Pages project using the Cloudflare API. Invoked by the Python server when Publish is selected."
     }
   ],
-  "implementationNote": "Canvas text editing, block drag-and-drop, adjustment sliders, erase/restore brushes, workspace decorations, and procedural paper/ink use Folio Studio code with native browser APIs. No separate material or AI segmentation library is incorporated. System fonts need no font service. File Explorer selection and Recycle Bin operations use native Windows shell APIs with no additional library.",
+  "implementationNote": "Canvas text editing, block drag-and-drop, adjustment sliders, erase/restore brushes, workspace decorations, and procedural paper/ink use Folio Studio code with native browser APIs. No separate material or AI segmentation library is incorporated. System fonts need no font service. File Explorer selection and Recycle Bin operations use native Windows shell APIs with no additional library. Cloudflare settings use native Windows current-user DPAPI encryption. The installer downloads private official Python and Node runtimes and installs pnpm; no additional encryption library is used.",
   "inventoryNote": "The expandable inventory lists installed JavaScript packages, including indirect build and publishing dependencies. These packages support the direct libraries above; they are not all delivered to visitors. Versions and declared licenses come from installed package metadata. Package license files and upstream notices remain authoritative. Python dependency ranges come from requirements.txt."
 }

@@ -2,7 +2,7 @@
 $StudioUrl = 'http://127.0.0.1:4873'
 try {
     $Response = Invoke-WebRequest -Uri "$StudioUrl/api/config" -UseBasicParsing -TimeoutSec 2
-    if ($Response.StatusCode -eq 200) { Start-Process $StudioUrl; exit }
+    if ($Response.StatusCode -eq 200) { Start-Process $StudioUrl; return }
 } catch { }
 $PythonExe = Find-StudioPython
 $StudioData = Join-Path $StudioRoot 'data'

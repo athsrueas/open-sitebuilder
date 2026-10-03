@@ -4,15 +4,21 @@ A small local portfolio builder for artists. A Python server opens a visual edit
 
 ## Start on Windows
 
-Install Python 3.11+ and Node.js 22.12+ (Node 24 LTS recommended). From this folder run:
+1. Download the ZIP from [open-sitebuilder on GitHub](https://github.com/athsrueas/open-sitebuilder) using **Code → Download ZIP**.
+2. Extract the ZIP, open the extracted folder, and double-click **Install.cmd**.
+3. Wait for installation. The editor opens automatically and a **Folio Studio** desktop shortcut is created. Open **Settings** to enter your Cloudflare credentials when ready to publish.
+
+No existing Python, Node.js, pnpm, or Git installation is required. The installer downloads private Python 3.13.12, Node 24.21.0 and pnpm 11.25.0, then installs the application dependencies. Python and Node archives are verified using pinned SHA-256 hashes. Internet access is required during installation and publishing. Windows 10/11 64-bit is the target; x64 installation has been tested, while the ARM64 download path still needs device testing. Administrator access is not required.
+
+The default installation folder is `%LOCALAPPDATA%\FolioStudio`. Your project, photos and encrypted publishing settings live in its `data` folder. The shortcut starts the local server in the background; **Settings → Close studio** stops it. Install only from a source you trust: the script runs application code and downloads dependencies.
+
+For updates, download a new ZIP and run Install.cmd again; existing installed artwork and settings are preserved. Back up `data` first. To choose a different installation folder, run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\setup.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -InstallDirectory "C:\Apps\FolioStudio"
 ```
 
-Setup installs Pillow and the Node dependencies and creates a **Folio Studio** desktop shortcut. Double-click the shortcut to open the builder. You can also run `python server.py` directly, or `python server.py --no-browser --port 4873`. On this Codex machine, the scripts can use bundled runtimes.
-
-The shortcut starts the server in the background. To stop it, click **Settings → Close studio**. The foreground command can be stopped with Ctrl+C. This is a source-based application, not a packaged installer yet.
+Developers can run `setup.ps1` in a checkout to install the private runtimes there, or run `python server.py --no-browser --port 4873` with their own dependencies.
 
 ## Media management and image editing
 
@@ -81,28 +87,20 @@ The preview and Astro output share `shared/render.js` and the small `shared/runt
 
 For a temporary landing page, enable **Settings → Full-screen splash layout**. This hides the portfolio navigation and footer and gives each block a full viewport canvas; headings and paper/ink settings remain editable. [examples/coming-soon.json](examples/coming-soon.json) contains the Miranda Freestone placeholder with watercolor paper, slow moving light, soft ink type and animated pigment blooms. The local portfolio before this change is preserved in `data/backups`. Disable the layout to return to normal page styling; restore a backed-up project to recover its previous pages.
 
-1. Create a Cloudflare account and a **Pages Direct Upload** project. Use the project name shown in Cloudflare, not a display name or domain. Set its production branch to `main` (Wrangler publishes to `main`).
-2. Create an API token with **Account → Cloudflare Pages → Edit**, scoped to your account.
-3. In Settings, enter the account ID, project name, and token. Saving writes them to the private `.env` file in the application folder. You can also edit that file directly.
-4. Click **Publish**. The server builds the current saved project with Astro, then invokes local Wrangler to upload `site/dist`. Publishing updates the configured project's production site.
+Follow the [step-by-step Cloudflare setup and security guide](docs/CLOUDFLARE-SETUP.md). It covers creating an account and Pages project, finding the account ID, creating a scoped API token, saving credentials, publishing, connecting subdomains, and rotating or revoking tokens.
 
-The app reads these values from the root `.env` file whenever you open Settings or publish:
+1. Create a **Pages Direct Upload** project, or use your existing project, with production branch `main`.
+2. Create an API token with **Account → Cloudflare Pages → Edit**, restricted to the specific account. DNS permissions are unnecessary when you connect custom domains through the dashboard.
+3. Enter the account ID, project name and token in **Settings**, then save. Windows encrypts the credentials for your current user; no `.env` is required. Leaving the token blank retains the saved token.
+4. Click **Build site** to inspect the result, then **Publish** to update that project's public production site.
 
-```dotenv
-CLOUDFLARE_API_TOKEN=your_token_here
-CLOUDFLARE_ACCOUNT_ID=your_account_id_here
-CLOUDFLARE_PAGES_PROJECT=your_pages_project_name
-```
+**Token risk:** Pages Edit can modify or delete Pages projects in its permitted account, not just the project selected in this editor. Optional DNS Edit access can redirect websites and disrupt mail. Use the minimum permissions, never commit a token, and revoke it promptly if exposed. Windows encryption protects the file at rest; it cannot protect credentials from malware running under your login.
 
-Changes to `.env` take effect without restarting. Existing non-empty environment variables override the corresponding file values. Leaving the token field blank in Settings preserves the saved token. To remove it, clear `CLOUDFLARE_API_TOKEN` in `.env` and any launch environment variable.
-
-The `.env` file contains your token in plain text and is excluded from Git. Keep it private; `.env.example` is the shareable blank template. Credentials stay outside project JSON, the generated site, and browser responses. Cloudflare publishing requires internet access. No account or token is needed to edit and build locally.
-
-Official references: [StPageFlip](https://github.com/Nodlik/StPageFlip), [Cloudflare Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/), [API token setup](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/).
+A legacy root `.env` is supported as an import source. Saving Settings encrypts its Cloudflare values, verifies the result, and removes the three Cloudflare entries while preserving unrelated variables. Advanced configuration priority is: nonempty process environment → encrypted settings → optional `.env` → legacy account/project settings. Credentials stay outside project JSON, generated pages and browser responses. No account or token is needed to edit and build locally.
 
 ## Data and photos
 
-Back up the entire `data` folder. It contains `project.json`, nonsecret Cloudflare configuration, original uploads, and processed web images. Original bytes remain local. Images are orientation-corrected, metadata removed, and converted to WebP at up to 2,400 px for the portfolio and 5,000 px for the full-size link. Images are never upscaled. Import supports up to 60 MB and 80 megapixels per image. Transparency is preserved. Published original downloads and images above 5,000 px are not included in this first version.
+Back up the entire `data` folder. It contains `project.json`, encrypted credentials, nonsecret Cloudflare configuration, original uploads, and processed web images. On another computer or Windows account, re-enter your publishing credentials. Original bytes remain local. Images are orientation-corrected, metadata removed, and converted to WebP at up to 2,400 px for the portfolio and 5,000 px for the full-size link. Images are never upscaled. Import supports up to 60 MB and 80 megapixels per image. Transparency is preserved. Published original downloads and images above 5,000 px are not included in this first version.
 
 The server binds only to `127.0.0.1`; host checks and a per-launch request token protect writes. Do not expose it with a tunnel or bind it to a network interface. No analytics, remote fonts, or external image dependencies are included.
 
@@ -118,7 +116,7 @@ node --check shared/render.js
 
 The checked-in Astro template expects `site/src/project.json`, generated by the editor's Build action. Build output and personal artwork are excluded from Git. `pnpm-lock.yaml` pins Node dependencies; use `pnpm install --frozen-lockfile` for reproducible installation.
 
-This first version supports one local portfolio, structured block layouts, and styling controls. Free-position canvas editing, arbitrary custom CSS, full project undo/history and a packaged installer are future additions. Cloudflare publishing has been verified with the configured Pages project. New accounts and projects require their own credentials and permissions.
+This version supports one local portfolio, structured blocks, layered free layouts, styling controls and a Windows bootstrap installer. Arbitrary custom CSS, full project undo/history and a signed application package remain future additions. Cloudflare publishing has been verified with the configured Pages project. New accounts and projects require their own credentials and permissions.
 
 <!-- folio-about:start -->
 ## About, feature history and attributions
@@ -129,22 +127,22 @@ Open **About** in the editor toolbar for these same credits and feature history.
 
 ### Feature history
 
-- **Lean Astro exports** — Remove editor metadata, unused block CSS and unselected material effects from published pages. Static sites emit no JavaScript; animation and sketchbook runtime files are generated only when used. <sub>2026-10-02 · [bbcf2b8](https://github.com/athsrueas/mirandasite/commit/bbcf2b8f1c9222d0e27557d39ec260b14451c1ef)</sub>
-- **Layered free layout and separate mobile canvas** — Arrange overlapping text and image layers directly on a prominent free canvas, resize and reorder layers, configure independent mobile positions, and automatically stack incomplete phone layouts. <sub>2026-10-02 · [ef86d23](https://github.com/athsrueas/mirandasite/commit/ef86d23307dab80fc5b3f685f3ae6b5c4b6e4b9e)</sub>
-- **Media deletion and File Explorer** — Delete an image and its placements with local file recovery in the Windows Recycle Bin, or open File Explorer with the original upload selected. Other edited versions are preserved. <sub>2026-10-02 · [d46ad5c](https://github.com/athsrueas/mirandasite/commit/d46ad5cf67254bb65c16b4077996c8a907bf9361)</sub>
-- **Visible block deletion and undo** — Delete blocks directly from the canvas toolbar or Pages list, and restore up to 20 recent deletions during the editor session. <sub>2026-10-02 · [018d43d](https://github.com/athsrueas/mirandasite/commit/018d43dadb0a0767c12a9e167282c2b71a59a1bf)</sub>
-- **Animated coming-soon splash** — Editable full-screen landing layout with procedural watercolor paper, slow light and ink blooms, plus a reusable coming-soon portfolio example. <sub>2026-10-02 · [06fe1f8](https://github.com/athsrueas/mirandasite/commit/06fe1f8d16858ace665a3d6fee38828582b7a1aa)</sub>
-- **About, feature history and library credits** — Feature additions with linked commits, library-to-feature attributions, searchable dependency credits, and shared content synchronized with the README. <sub>2026-10-02 · [49136c1](https://github.com/athsrueas/mirandasite/commit/49136c1ade1139c1aa828e2d97d358a839bf294f)</sub>
-- **Performance and responsive layouts** — Incremental canvas previews, responsive image derivatives, background image processing, smaller exported scripts, and narrow-screen editor layouts. <sub>2026-10-02 · [6775461](https://github.com/athsrueas/mirandasite/commit/67754619d87a3b83236fc242536de819dc2ed59c)</sub>
-- **Paper and ink materials** — Procedural paper grain, fibers and weave, moving light, heading ink finishes, and pigment washes with motion preferences respected. <sub>2026-10-02 · [b8c6e11](https://github.com/athsrueas/mirandasite/commit/b8c6e112926f1f3b0b959328d33ac7ef5f81e94e)</sub>
-- **Media library and image editing** — Import and organize artwork, preserve originals and edited versions, crop, resize, rotate, adjust color, remove connected backgrounds, and refine transparency with brushes. <sub>2026-10-02 · [84e1061](https://github.com/athsrueas/mirandasite/commit/84e10610e9c97c5d1aecabbfc209899b7eceb1ef)</sub>
-- **Workspace appearance** — Minimal monochrome editor typography with optional icons and movable stickers stored locally in the browser. <sub>2026-10-02 · [fd3ae2f](https://github.com/athsrueas/mirandasite/commit/fd3ae2fcb3b30830c262ff11b315c272debc77b3)</sub>
-- **Themes and inherited block styles** — Six gallery-inspired presets and editable site defaults for fonts, colors, sizing, spacing and artwork layout, with individual block overrides. <sub>2026-10-02 · [280b036](https://github.com/athsrueas/mirandasite/commit/280b036aa9b40cb663ba3d46390454ef597ccb49)</sub>
-- **Grouped block library** — 25 portfolio blocks across Text, Artwork, Media, Links & contact, and Layout, with search and collapsible groups. <sub>2026-10-02 · [c65829e](https://github.com/athsrueas/mirandasite/commit/c65829e6088ff0c25f394156bca45d802e14f77e)</sub>
-- **Plain interface copy** — Removed promotional slogans from the editor and portfolio defaults. <sub>2026-10-02 · [2039d45](https://github.com/athsrueas/mirandasite/commit/2039d45328f941503ebcd1d1618bdf8313a82a20)</sub>
-- **Editing directly on the canvas** — Editable headings, paragraphs and captions, photo drops, existing artwork assignment, and drag handles for image sizing. <sub>2026-10-02 · [3e1ca01](https://github.com/athsrueas/mirandasite/commit/3e1ca01dd74b7aabb14cd2ed77bde0052c46e947)</sub>
-- **Live preview and block drops** — Preview updates as content changes; blocks can be dragged onto the page and reordered. <sub>2026-10-02 · [a28f019](https://github.com/athsrueas/mirandasite/commit/a28f01976a87f4b2243bb805af28e16c619979dd)</sub>
-- **Initial portfolio builder** — Local Python launcher, pages and artwork blocks, page-flipping sketchbooks, Astro builds, and configured Cloudflare Pages publishing. <sub>2026-10-02 · [e1db04b](https://github.com/athsrueas/mirandasite/commit/e1db04b7e9daa5617f5f86696da70372fe3b03df)</sub>
+- **Lean Astro exports** — Remove editor metadata, unused block CSS and unselected material effects from published pages. Static sites emit no JavaScript; animation and sketchbook runtime files are generated only when used. <sub>2026-10-02 · [bbcf2b8](https://github.com/athsrueas/open-sitebuilder/commit/bbcf2b8f1c9222d0e27557d39ec260b14451c1ef)</sub>
+- **Layered free layout and separate mobile canvas** — Arrange overlapping text and image layers directly on a prominent free canvas, resize and reorder layers, configure independent mobile positions, and automatically stack incomplete phone layouts. <sub>2026-10-02 · [ef86d23](https://github.com/athsrueas/open-sitebuilder/commit/ef86d23307dab80fc5b3f685f3ae6b5c4b6e4b9e)</sub>
+- **Media deletion and File Explorer** — Delete an image and its placements with local file recovery in the Windows Recycle Bin, or open File Explorer with the original upload selected. Other edited versions are preserved. <sub>2026-10-02 · [d46ad5c](https://github.com/athsrueas/open-sitebuilder/commit/d46ad5cf67254bb65c16b4077996c8a907bf9361)</sub>
+- **Visible block deletion and undo** — Delete blocks directly from the canvas toolbar or Pages list, and restore up to 20 recent deletions during the editor session. <sub>2026-10-02 · [018d43d](https://github.com/athsrueas/open-sitebuilder/commit/018d43dadb0a0767c12a9e167282c2b71a59a1bf)</sub>
+- **Animated coming-soon splash** — Editable full-screen landing layout with procedural watercolor paper, slow light and ink blooms, plus a reusable coming-soon portfolio example. <sub>2026-10-02 · [06fe1f8](https://github.com/athsrueas/open-sitebuilder/commit/06fe1f8d16858ace665a3d6fee38828582b7a1aa)</sub>
+- **About, feature history and library credits** — Feature additions with linked commits, library-to-feature attributions, searchable dependency credits, and shared content synchronized with the README. <sub>2026-10-02 · [49136c1](https://github.com/athsrueas/open-sitebuilder/commit/49136c1ade1139c1aa828e2d97d358a839bf294f)</sub>
+- **Performance and responsive layouts** — Incremental canvas previews, responsive image derivatives, background image processing, smaller exported scripts, and narrow-screen editor layouts. <sub>2026-10-02 · [6775461](https://github.com/athsrueas/open-sitebuilder/commit/67754619d87a3b83236fc242536de819dc2ed59c)</sub>
+- **Paper and ink materials** — Procedural paper grain, fibers and weave, moving light, heading ink finishes, and pigment washes with motion preferences respected. <sub>2026-10-02 · [b8c6e11](https://github.com/athsrueas/open-sitebuilder/commit/b8c6e112926f1f3b0b959328d33ac7ef5f81e94e)</sub>
+- **Media library and image editing** — Import and organize artwork, preserve originals and edited versions, crop, resize, rotate, adjust color, remove connected backgrounds, and refine transparency with brushes. <sub>2026-10-02 · [84e1061](https://github.com/athsrueas/open-sitebuilder/commit/84e10610e9c97c5d1aecabbfc209899b7eceb1ef)</sub>
+- **Workspace appearance** — Minimal monochrome editor typography with optional icons and movable stickers stored locally in the browser. <sub>2026-10-02 · [fd3ae2f](https://github.com/athsrueas/open-sitebuilder/commit/fd3ae2fcb3b30830c262ff11b315c272debc77b3)</sub>
+- **Themes and inherited block styles** — Six gallery-inspired presets and editable site defaults for fonts, colors, sizing, spacing and artwork layout, with individual block overrides. <sub>2026-10-02 · [280b036](https://github.com/athsrueas/open-sitebuilder/commit/280b036aa9b40cb663ba3d46390454ef597ccb49)</sub>
+- **Grouped block library** — 25 portfolio blocks across Text, Artwork, Media, Links & contact, and Layout, with search and collapsible groups. <sub>2026-10-02 · [c65829e](https://github.com/athsrueas/open-sitebuilder/commit/c65829e6088ff0c25f394156bca45d802e14f77e)</sub>
+- **Plain interface copy** — Removed promotional slogans from the editor and portfolio defaults. <sub>2026-10-02 · [2039d45](https://github.com/athsrueas/open-sitebuilder/commit/2039d45328f941503ebcd1d1618bdf8313a82a20)</sub>
+- **Editing directly on the canvas** — Editable headings, paragraphs and captions, photo drops, existing artwork assignment, and drag handles for image sizing. <sub>2026-10-02 · [3e1ca01](https://github.com/athsrueas/open-sitebuilder/commit/3e1ca01dd74b7aabb14cd2ed77bde0052c46e947)</sub>
+- **Live preview and block drops** — Preview updates as content changes; blocks can be dragged onto the page and reordered. <sub>2026-10-02 · [a28f019](https://github.com/athsrueas/open-sitebuilder/commit/a28f01976a87f4b2243bb805af28e16c619979dd)</sub>
+- **Initial portfolio builder** — Local Python launcher, pages and artwork blocks, page-flipping sketchbooks, Astro builds, and configured Cloudflare Pages publishing. <sub>2026-10-02 · [e1db04b](https://github.com/athsrueas/open-sitebuilder/commit/e1db04b7e9daa5617f5f86696da70372fe3b03df)</sub>
 
 ### Direct libraries
 
@@ -156,10 +154,10 @@ Open **About** in the editor toolbar for these same credits and feature history.
 | [Pica](https://github.com/nodeca/pica) · 10.0.3 | **High-quality image resizing.** Resamples artwork when pixel dimensions are changed in the local image editor. Does not send images to an external service. | MIT · [source and notices](https://github.com/nodeca/pica) |
 | [Magic Wand Tool](https://github.com/Tamersoul/magic-wand-js) · 1.1.7 | **Connected-background cutout.** Selects connected pixels by color tolerance so the editor can remove their alpha. Runs in a local worker; this is color selection rather than AI subject segmentation. | MIT · [source and notices](https://github.com/Tamersoul/magic-wand-js) |
 | [Pillow](https://github.com/python-pillow/Pillow) · >=11.0,<13 | **Artwork import and web images.** The Python server corrects orientation, removes metadata, preserves transparency, and creates thumbnail, responsive and full-size WebP copies. The original upload is preserved. Pillow's codec notices are documented upstream. | MIT-CMU (HPND) · [source and notices](https://github.com/python-pillow/Pillow) |
-| [python-dotenv](https://github.com/theskumar/python-dotenv) · >=1.0,<2 | **Local publishing configuration.** Reads and writes the private .env configuration for the Cloudflare token, account and Pages project. Credentials stay outside portfolio content and generated pages. | BSD-3-Clause · [source and notices](https://github.com/theskumar/python-dotenv) |
+| [python-dotenv](https://github.com/theskumar/python-dotenv) · >=1.0,<2 | **Legacy configuration import.** Reads optional .env publishing settings and removes imported Cloudflare entries after Windows-encrypted storage is verified. Credentials stay outside portfolio content and generated pages. | BSD-3-Clause · [source and notices](https://github.com/theskumar/python-dotenv) |
 | [Wrangler](https://github.com/cloudflare/workers-sdk) · 4.146.0 | **Cloudflare Pages deployment.** Uploads the built static site to the configured Pages project using the Cloudflare API. Invoked by the Python server when Publish is selected. | MIT OR Apache-2.0 · [source and notices](https://github.com/cloudflare/workers-sdk) |
 
-Canvas text editing, block drag-and-drop, adjustment sliders, erase/restore brushes, workspace decorations, and procedural paper/ink use Folio Studio code with native browser APIs. No separate material or AI segmentation library is incorporated. System fonts need no font service. File Explorer selection and Recycle Bin operations use native Windows shell APIs with no additional library.
+Canvas text editing, block drag-and-drop, adjustment sliders, erase/restore brushes, workspace decorations, and procedural paper/ink use Folio Studio code with native browser APIs. No separate material or AI segmentation library is incorporated. System fonts need no font service. File Explorer selection and Recycle Bin operations use native Windows shell APIs with no additional library. Cloudflare settings use native Windows current-user DPAPI encryption. The installer downloads private official Python and Node runtimes and installs pnpm; no additional encryption library is used.
 
 Full notices for the bundled image tools: [THIRD-PARTY-IMAGE-LICENSES.md](THIRD-PARTY-IMAGE-LICENSES.md).
 

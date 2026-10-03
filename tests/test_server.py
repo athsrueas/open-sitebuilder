@@ -281,10 +281,12 @@ class LocalApiTests(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError):
             self.request('/api/upload', edited.getvalue(), headers={'X-Source-Asset': 'f' * 32})
 
-    def test_token_persists_in_env_but_is_not_returned_to_browser(self):
+    def test_token_is_encrypted_and_not_returned_to_browser(self):
         value = {'accountId': 'a' * 32, 'projectName': 'test-portfolio', 'token': 'secret-test-token'}
         self.request('/api/config', value).close()
         self.assertNotIn('secret-test-token', (server.DATA / 'cloudflare.json').read_text())
+        self.assertNotIn(b'secret-test-token',(server.DATA/'credentials.dat').read_bytes())
+        self.assertFalse(server.ENV_FILE.exists())
         config, token = server.cloudflare_settings()
         self.assertEqual(token, 'secret-test-token')
         self.assertEqual(config['projectName'], 'test-portfolio')
@@ -295,6 +297,21 @@ class LocalApiTests(unittest.TestCase):
         value['token'] = ''
         self.request('/api/config', value).close()
         self.assertEqual(server.cloudflare_settings()[1], 'secret-test-token')
+
+    def test_env_import_removes_only_cloudflare_keys_after_encryption(self):
+        server.ENV_FILE.write_text('CLOUDFLARE_API_TOKEN=import-token\nCLOUDFLARE_ACCOUNT_ID='+'b'*32+'\nCLOUDFLARE_PAGES_PROJECT=gallery\nUNRELATED=keep-me\n')
+        self.request('/api/config',dict(accountId='b'*32,projectName='gallery',token='')).close()
+        self.assertEqual(server.cloudflare_settings()[1],'import-token')
+        text=server.ENV_FILE.read_text()
+        self.assertNotIn('import-token',text)
+        self.assertIn('UNRELATED=keep-me',text)
+        self.assertEqual(server.cloudflare_settings()[0]['credentialStorage'],'windows-encrypted')
+
+    def test_failed_encryption_preserves_plaintext_import(self):
+        server.ENV_FILE.write_text('CLOUDFLARE_API_TOKEN=preserve-token\n')
+        with patch.object(server,'write_credentials',side_effect=ValueError('Encryption unavailable')):
+            with self.assertRaises(urllib.error.HTTPError): self.request('/api/config',dict(accountId='a'*32,projectName='test',token=''))
+        self.assertIn('preserve-token',server.ENV_FILE.read_text())
 
     def test_env_edits_are_read_without_restart_and_environment_takes_precedence(self):
         server.ENV_FILE.write_text('# local settings\nCLOUDFLARE_API_TOKEN="first-token"\nCLOUDFLARE_ACCOUNT_ID=' + 'b' * 32 + '\nCLOUDFLARE_PAGES_PROJECT=gallery\n')
