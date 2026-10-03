@@ -209,6 +209,8 @@ def validate_project(p):
             if not isinstance(block.get('spreads'), list):
                 raise ValueError('Invalid sketchbook pages.')
             for spread in block['spreads']:
+                if 'fillPage' in spread and not isinstance(spread['fillPage'], bool):
+                    raise ValueError('Invalid sketchbook fill-page setting.')
                 check_id(spread.get('id'))
                 check_text(spread, ('title', 'caption'))
                 if spread.get('image') and spread['image'] not in assets:

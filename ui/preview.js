@@ -44,7 +44,7 @@ editorStyle.textContent += `
   .image-size label{display:flex;gap:6px;align-items:center}.image-size input{width:100px}
   .single-image{position:relative;min-height:120px}.single-image>.resize-grip{position:absolute;right:-9px;bottom:-9px;width:20px;height:20px;border:2px solid white;border-radius:0;background:#111111;cursor:nwse-resize;touch-action:none;z-index:20}
   .book-page [contenteditable]{position:relative;z-index:5}
-  .book-page>.page-photo{position:absolute;top:7px;right:7px;z-index:6}
+  .book-page>.page-fill{position:absolute;top:7px;left:7px;z-index:6;display:flex;align-items:center;gap:5px;background:white;color:black;padding:5px;font:11px Arial;margin:0}.page-fill input{width:auto;margin:0}.book-page>.page-photo{position:absolute;top:7px;right:7px;z-index:6}
 `;
 editorStyle.textContent += `.canvas-styles{position:relative}.canvas-styles>summary{cursor:pointer;padding:7px 9px}.canvas-style-fields{position:absolute;top:32px;left:0;width:275px;max-height:55vh;overflow:auto;background:#ffffff;color:#111111;border:1px solid #cccccc;box-shadow:0 8px 24px #0002;padding:14px;text-align:left;z-index:100}.canvas-style-fields p{font:12px Arial,sans-serif!important}.canvas-style-fields .style-group{border-top:1px solid #cccccc;padding-top:10px;margin-top:10px}.canvas-style-fields summary{padding:7px 0;cursor:pointer}.style-field{margin:12px 0}.style-field label{display:block;margin-bottom:5px}.style-field select,.style-field input:not([type=checkbox]){width:100%;padding:7px;border:1px solid #cccccc;background:white;color:#111111}.style-field input[type=color]{height:34px}.style-field input:disabled,.style-field select:disabled{opacity:.5}.style-override{display:flex!important;align-items:center;gap:6px}.canvas-style-fields input[type=checkbox]{width:auto;min-width:0;margin:0;flex:0 0 auto}.canvas-style-fields input,.canvas-style-fields select{min-width:0;box-sizing:border-box}.canvas-style-fields{max-width:calc(100vw - 100px)}@media(max-width:600px){.block-tools{flex-wrap:wrap;max-width:100%}.canvas-style-fields{position:fixed;top:24%;left:5%;width:90%;max-width:90%;max-height:65vh}}`;
 editorStyle.textContent += `.editor-chrome,.canvas-tools{font-family:Arial,Helvetica,sans-serif;color:#111}.editor-chrome button,.canvas-tools button{color:#111;border-color:#bbb;border-radius:0;font-size:12px}.canvas-tools{border-bottom:1px solid #111}.canvas-tools span{color:#555}.block-tools{background:#fff;border-color:#bbb}.block-tools summary{font-size:12px}.canvas-style-fields{color:#111;border-color:#111;border-radius:0}.folio-block:not(.is-selected):not(:hover):not(:focus-within)>.block-tools{opacity:.5}.editor-chrome input,.editor-chrome select{color:#111;accent-color:#111}.editor-chrome button:focus-visible,.canvas-tools button:focus-visible{outline:2px solid #111;outline-offset:2px}`;
@@ -233,7 +233,12 @@ function decorate(container,page,theme){
       el.dataset.placeholder=el.dataset.edit==='label'?'Add a small heading…':el.dataset.edit==='attribution'?'Add an attribution…':el.dataset.edit==='text'||el.dataset.edit==='caption'?'Write here…':'Add a title…';
       el.spellcheck=true;
     });
-    section.querySelectorAll('[data-spread-id]').forEach(el=>{
+    section.querySelectorAll('[data-spread-id]').forEach((el,index)=>{
+      const spread=b.spreads.find(s=>s.id===el.dataset.spreadId);
+      const fill=document.createElement('label');fill.className='editor-chrome page-fill';
+      const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=!!spread?.fillPage;checkbox.setAttribute('aria-label','Fill sketchbook page '+(index+1)+' with artwork');
+      checkbox.onchange=e=>{e.stopPropagation();send({type:'block-action',blockId:b.id,spreadId:el.dataset.spreadId,action:'fill-page'});};
+      fill.append(checkbox,document.createTextNode('Fill page'));el.append(fill);
       const photo=document.createElement('button');photo.className='editor-chrome page-photo';photo.textContent='Add / replace photo';photo.setAttribute('aria-label','Replace photo on sketchbook page');
       photo.onclick=e=>{e.stopPropagation();choosePhotos({blockId:b.id,spreadId:el.dataset.spreadId});};el.append(photo);
     });

@@ -37,6 +37,22 @@ test('large sketchbooks export every page in order without truncation',()=>{
   assert.ok(html.indexOf('data-spread-id="sheet999"')>html.indexOf('data-spread-id="sheet998"'));
   assert.match(html,/Caption 1000/);
 });
+test('fill-page sketchbook artwork hides text without discarding it and exports with download deterrence',()=>{
+  const spread={id:'sheet',title:'Saved page title',caption:'Saved page caption',background:'#ffffff',fit:'contain',hard:false,image:'art',fillPage:true};
+  const book={id:'book',type:'sketchbook',title:'Book',label:'',text:'',images:[],spreads:[spread],fit:'contain'};
+  const project={name:'Artist',description:'',theme:{},assets:[{id:'art',src:'/media/art.webp',full:'/media/art-full.webp',alt:'Artwork'}],pages:[{id:'page',blocks:[book]}]};
+  for(const discourageImageDownloads of [false,true]){
+    project.discourageImageDownloads=discourageImageDownloads;
+    const output=portfolioMarkup(project,'page',{published:true});
+    assert.match(output.html,/book-page-fill/);
+    assert.match(output.html,/object-fit:cover/);
+    assert.doesNotMatch(output.html,/Saved page title|Saved page caption|data-edit="title"/);
+    assert.match(output.css,/\.book-page\.book-page-fill\{padding:0\}/);
+  }
+  spread.fillPage=false;
+  const html=portfolioMarkup(project,'page').html;
+  assert.match(html,/Saved page title/);assert.match(html,/Saved page caption/);assert.match(html,/object-fit:contain/);
+});
 test('canvas image sizes are constrained and reach the generated site', () => {
   const b={id:'image',type:'image',text:'',images:[],spreads:[],fit:'contain'};
   assert.equal(resizeImage(b,65,420),true);

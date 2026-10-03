@@ -44,7 +44,7 @@ This is a deterrent, not copy protection. Displayed web images can still be retr
 
 ## Sketchbooks
 
-New sketchbooks start with four pages. There is no fixed page-count limit: use **+ Add sketchbook page** on the canvas toolbar or in **Details**. Each page has independent artwork, title, caption, paper color, image fit and cover settings. Reorder or delete pages in Details. At least two pages are needed for page flipping. Very large sketchbooks are still constrained by browser memory and the general 60 MB project-save request limit; photos are uploaded separately.
+New sketchbooks start with four pages. There is no fixed page-count limit: use **+ Add sketchbook page** on the canvas toolbar or in **Details**. Each page has independent artwork, title, caption, paper color, image fit and cover settings. Enable **Fill page** directly on a sketchbook page, or **Fill page with artwork** in Details, to use edge-to-edge artwork with cropping and hide the page title, caption and number. Text is preserved and reappears when switched off. Reorder or delete pages in Details. At least two pages are needed for page flipping. Very large sketchbooks are still constrained by browser memory and the general 60 MB project-save request limit; photos are uploaded separately.
 
 ## Media management and image editing
 

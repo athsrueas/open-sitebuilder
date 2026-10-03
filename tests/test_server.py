@@ -14,6 +14,15 @@ import server
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_sketchbook_fill_page_is_optional_and_boolean(self):
+        project=server.default_project()
+        spread=project['pages'][0]['blocks'][1]['spreads'][0]
+        for value in (True, False):
+            spread['fillPage']=value
+            server.validate_project(project)
+        spread['fillPage']='true'
+        with self.assertRaisesRegex(ValueError, 'fill-page'):
+            server.validate_project(project)
     def test_sketchbooks_accept_more_than_200_pages_and_validate_every_page(self):
         project = server.default_project()
         book = project['pages'][0]['blocks'][1]
