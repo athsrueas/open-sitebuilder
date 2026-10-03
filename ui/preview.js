@@ -180,7 +180,7 @@ function decorate(container,page,theme,project){
     if(section.querySelector(':scope > .block-tools')){if(section.querySelector('.canvas-styles')?.open)stylePanels.get(section)?.();continue;}
     const toolbar=document.createElement('div');toolbar.className='editor-chrome block-tools';
     toolbar.innerHTML='<button class="grip" draggable="true" aria-label="Drag block">⠿</button><button data-action="up" aria-label="Move block up">↑</button><button data-action="down" aria-label="Move block down">↓</button><button data-action="duplicate">Duplicate</button><button data-action="delete" aria-label="Delete block">Delete</button>';
-    toolbar.querySelector('.grip').ondragstart=e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','block:'+b.id);};
+    toolbar.querySelector('.grip').ondragstart=e=>{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','block:'+b.id);e.dataTransfer.setData('application/x-folio-block',b.id);};
     toolbar.onclick=e=>{if(e.target.dataset.action)send({type:'block-action',blockId:b.id,action:e.target.dataset.action});};
     if(b.type==='sketchbook'){
       const add=document.createElement('button');add.textContent='+ Add sketchbook page';add.dataset.action='add-spread';toolbar.append(add);

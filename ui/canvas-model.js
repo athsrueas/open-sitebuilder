@@ -1,4 +1,18 @@
+import {internalLink} from '../shared/links.js';
 // Apply canvas changes to the same project model used by the inspector and export.
+export function moveBlockToPage(project,blockId,targetPageId){
+  const source=project.pages.find(p=>p.blocks.some(b=>b.id===blockId));
+  const target=project.pages.find(p=>p.id===targetPageId);
+  if(!source||!target||source===target||target.blocks.length>=200)return false;
+  const index=source.blocks.findIndex(b=>b.id===blockId),block=source.blocks[index];
+  const oldLink=internalLink(source,block),newLink=internalLink(target,block);
+  source.blocks.splice(index,1);target.blocks.push(block);
+  for(const page of project.pages)for(const b of page.blocks){
+    if(b.url===oldLink)b.url=newLink;
+    for(const item of b.items||[])if(item.url===oldLink)item.url=newLink;
+  }
+  return true;
+}
 export function removeBlock(page,blockId){
   const index=page.blocks.findIndex(b=>b.id===blockId);if(index<0)return null;
   const block=structuredClone(page.blocks[index]);page.blocks.splice(index,1);return {block,index};
