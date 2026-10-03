@@ -15,6 +15,7 @@ const image = (id, project, fit='contain') => {
 export function portfolioMarkup(project, pageId, options={}) {
   const page = project.pages.find(p => p.id === pageId) || project.pages[0];
   const t = project.theme;
+  const splash=project.presentation==='splash';
   const css = extraBlockCss + `
     *{box-sizing:border-box}body{margin:0;background:${safeColor(t.background)};color:${safeColor(t.ink)};font-family:${t.serif ? 'Georgia,serif':'Arial,sans-serif'}}
     a{color:inherit}header{max-width:1200px;margin:auto;padding:32px 5%;display:flex;justify-content:space-between;gap:24px;align-items:center}header strong{font-size:22px}nav{display:flex;gap:22px;flex-wrap:wrap}nav a{text-decoration:none;font:12px Arial,sans-serif;text-transform:uppercase;letter-spacing:1.4px}nav a.active{border-bottom:2px solid ${safeColor(t.accent)};padding-bottom:6px}
@@ -22,8 +23,15 @@ export function portfolioMarkup(project, pageId, options={}) {
     img{max-width:100%;display:block;width:100%;height:100%;border-radius:${t.rounded ? '12':'0'}px}.single-image{height:auto;max-height:850px}.single-image img{max-height:1200px}.single-image a{display:block;height:100%}.caption{font:12px Arial,sans-serif;margin-top:12px;opacity:.65}.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.gallery figure{margin:0}.gallery a{height:400px;display:block}.image-placeholder{background:#00000008;min-height:220px;display:grid;place-items:center;font:14px Arial,sans-serif}.carousel{display:flex;overflow-x:auto;gap:20px;scroll-snap-type:x mandatory;padding-bottom:20px}.carousel figure{flex:0 0 85%;margin:0;scroll-snap-align:start}.carousel a{height:500px;display:block}
     .book-wrap{overflow:hidden;padding:20px 0}.book{margin:auto}.book:not([data-ready]){display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}.book:not([data-ready]) .book-page{height:480px}.book:not([data-ready])+.book-controls{display:none}.book-page{background:var(--paper);padding:24px;overflow:hidden;box-shadow:inset 0 0 25px #00000009}.book-page a{display:block;height:75%}.book-page h3{font-size:18px;font-weight:400}.book-page p{font-size:13px;line-height:1.5}.book-controls{display:flex;justify-content:center;align-items:center;gap:24px;margin-top:20px}.book-controls button{background:transparent;border:1px solid currentColor;padding:10px 16px;color:inherit;cursor:pointer}.rule{border:0;border-top:1px solid #0003}footer{padding:30px 5%;font:12px Arial,sans-serif;border-top:1px solid #0002;text-align:center}@media(max-width:600px){header{align-items:start;flex-direction:column}.gallery{grid-template-columns:1fr}.gallery a,.carousel a{height:320px}.book-page{padding:16px}}
   `;
-  const styledCss = css + portfolioStyleCss(t,page.blocks);
-  const html = materialDefs+`<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map((p,i) => `<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${i===0?'/':'/'+p.slug+'/'}">${escapeHtml(p.title)}</a>`).join('')}</nav></header><main>${page.blocks.map(b => {
+  const styledCss = css + portfolioStyleCss(t,page.blocks)+(splash?`
+    main.splash-page{max-width:none;padding:0;min-height:100svh}
+    .splash-page .folio-block{min-height:100svh;margin:0;padding:80px max(24px,8vw);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+    .splash-page h1{font-size:clamp(42px,8.5vw,var(--heroSize));line-height:1.04;max-width:1000px;white-space:pre-line;margin:26px 0;letter-spacing:-.035em;text-wrap:balance}
+    .splash-page .eyebrow{font-size:12px;letter-spacing:.18em}.splash-page p{max-width:620px}
+    .splash-page p:empty,.splash-page .eyebrow:empty{display:none}
+    .splash-page .ink-wash i{width:85%;left:-28%;top:-40%}.splash-page .ink-wash i:nth-child(2){width:85%;left:50%;top:18%}.splash-page .ink-wash i:nth-child(3){width:50%;left:28%;top:72%}
+  `:'');
+  const html = materialDefs+(splash?'':`<header><strong data-project-edit="name">${escapeHtml(project.name)}</strong><nav>${project.pages.map((p,i) => `<a class="${p.id===page.id?'active':''}" data-page="${p.id}" href="${i===0?'/':'/'+p.slug+'/'}">${escapeHtml(p.title)}</a>`).join('')}</nav></header>`)+`<main${splash?' class="splash-page"':''}>${page.blocks.map(b => {
     const reused=options.reuseBlock?.(b);if(reused)return reused;
     const heading = `<div class="eyebrow" data-edit="label">${escapeHtml(b.label)}</div><h2 data-edit="title">${escapeHtml(b.title)}</h2>`;
     let content = extraBlockMarkup(b,project,{esc:escapeHtml,image});
@@ -34,7 +42,7 @@ export function portfolioMarkup(project, pageId, options={}) {
     if(b.type==='divider') content='<hr class="rule" />';
     if(b.type==='sketchbook') content=heading+`<div class="book-wrap"><div class="book" data-book="${b.id}">${b.spreads.map((s,i)=>`<div class="book-page" data-spread-id="${s.id}" style="--paper:${safeColor(s.background)}" data-density="${s.hard?'hard':'soft'}">${image(s.image,project,s.fit)}<h3 data-edit="title">${escapeHtml(s.title)}</h3><p data-edit="caption">${escapeHtml(s.caption)}</p><span class="caption">${i+1}</span></div>`).join('')}</div><div class="book-controls"><button data-prev="${b.id}" aria-label="Previous sketchbook page">← Previous</button><span data-count="${b.id}"></span><button data-next="${b.id}" aria-label="Next sketchbook page">Next →</button></div></div>`;
     return `<section class="folio-block" data-block="${b.id}" style="${escapeHtml(styleVars(b.styles,true))}">${materialLayers}${content}</section>`;
-  }).join('')}</main><footer>${escapeHtml(project.name)}${project.description ? " · " : ""}<span data-project-edit="description">${escapeHtml(project.description)}</span></footer>`;
+  }).join('')}</main>`+(splash?'':`<footer>${escapeHtml(project.name)}${project.description ? " · " : ""}<span data-project-edit="description">${escapeHtml(project.description)}</span></footer>`);
   return { css:styledCss, html };
 }
 export function renderPortfolio(root, project, pageId, PageFlip, navigate) {

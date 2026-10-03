@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "name": "Miranda Freestone",
+  "description": "Art and sketchbooks by Miranda Freestone. Something new coming soon.",
+  "presentation": "splash",
+  "theme": {
+    "background": "#f4f0e7",
+    "ink": "#20211f",
+    "accent": "#555650",
+    "serif": true,
+    "wide": false,
+    "spacious": false,
+    "rounded": false,
+    "headingInk": "#20211f",
+    "bodyFont": "sans",
+    "headingFont": "serif",
+    "heroSize": 100,
+    "align": "center",
+    "blockGap": 0,
+    "paperTexture": "watercolor",
+    "paperStrength": 60,
+    "paperScale": 240,
+    "paperMotion": "soft-light",
+    "inkFinish": "bleed",
+    "inkWash": "bloom",
+    "inkWashColor": "#37383c",
+    "inkWashStrength": 27,
+    "materialDuration": 22
+  },
+  "assets": [],
+  "pages": [
+    {
+      "id": "c301db5d85484ddc99bc0861c22ed715",
+      "title": "Coming soon",
+      "slug": "coming-soon",
+      "blocks": [
+        {
+          "id": "6484c1228cab4796a32f4e45de27c17c",
+          "type": "hero",
+          "label": "Miranda Freestone",
+          "title": "Something new\ncoming soon.",
+          "text": "",
+          "images": [],
+          "spreads": [],
+          "fit": "contain"
+        }
+      ]
+    }
+  ]
+}

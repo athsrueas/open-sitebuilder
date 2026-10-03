@@ -101,6 +101,8 @@ def validate_styles(values, block=False):
 def validate_project(p):
     if not isinstance(p, dict) or p.get('version') != 1:
         raise ValueError('Unsupported project format.')
+    if p.get('presentation', 'portfolio') not in ('portfolio', 'splash'):
+        raise ValueError('Invalid portfolio presentation.')
     for key in ('name', 'description'):
         if not isinstance(p.get(key), str) or len(p[key]) > 5000:
             raise ValueError('Invalid artist details.')

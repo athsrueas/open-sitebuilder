@@ -72,6 +72,8 @@ The preview and Astro output share `shared/render.js` and the small `shared/runt
 
 ## Publish to Cloudflare
 
+For a temporary landing page, enable **Settings → Full-screen splash layout**. This hides the portfolio navigation and footer and gives each block a full viewport canvas; headings and paper/ink settings remain editable. [examples/coming-soon.json](examples/coming-soon.json) contains the Miranda Freestone placeholder with watercolor paper, slow moving light, soft ink type and animated pigment blooms. The local portfolio before this change is preserved in `data/backups`. Disable the layout to return to normal page styling; restore a backed-up project to recover its previous pages.
+
 1. Create a Cloudflare account and a **Pages Direct Upload** project. Use the project name shown in Cloudflare, not a display name or domain. Set its production branch to `main` (Wrangler publishes to `main`).
 2. Create an API token with **Account → Cloudflare Pages → Edit**, scoped to your account.
 3. In Settings, enter the account ID, project name, and token. Saving writes them to the private `.env` file in the application folder. You can also edit that file directly.
