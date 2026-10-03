@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "docs:sync": "node scripts/sync-about.mjs",
+    "docs:check": "node scripts/sync-about.mjs --check",
+    "prebuild": "node scripts/sync-about.mjs --check",
     "build": "astro build --root site"
   },
   "dependencies": {

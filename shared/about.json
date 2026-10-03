@@ -1,0 +1,143 @@
+{
+  "name": "Folio Studio",
+  "description": "A local art portfolio editor with static site export and Cloudflare Pages publishing.",
+  "repository": "https://github.com/athsrueas/mirandasite",
+  "history": [
+    {
+      "date": "2026-10-02",
+      "title": "Performance and responsive layouts",
+      "description": "Incremental canvas previews, responsive image derivatives, background image processing, smaller exported scripts, and narrow-screen editor layouts.",
+      "commit": "67754619d87a3b83236fc242536de819dc2ed59c"
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Paper and ink materials",
+      "description": "Procedural paper grain, fibers and weave, moving light, heading ink finishes, and pigment washes with motion preferences respected.",
+      "commit": "b8c6e112926f1f3b0b959328d33ac7ef5f81e94e"
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Media library and image editing",
+      "description": "Import and organize artwork, preserve originals and edited versions, crop, resize, rotate, adjust color, remove connected backgrounds, and refine transparency with brushes.",
+      "commit": "84e10610e9c97c5d1aecabbfc209899b7eceb1ef"
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Workspace appearance",
+      "description": "Minimal monochrome editor typography with optional icons and movable stickers stored locally in the browser.",
+      "commit": "fd3ae2fcb3b30830c262ff11b315c272debc77b3"
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Themes and inherited block styles",
+      "description": "Six gallery-inspired presets and editable site defaults for fonts, colors, sizing, spacing and artwork layout, with individual block overrides.",
+      "commit": "280b036aa9b40cb663ba3d46390454ef597ccb49"
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Grouped block library",
+      "description": "25 portfolio blocks across Text, Artwork, Media, Links & contact, and Layout, with search and collapsible groups.",
+      "commit": "c65829e6088ff0c25f394156bca45d802e14f77e"
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Plain interface copy",
+      "description": "Removed promotional slogans from the editor and portfolio defaults.",
+      "commit": "2039d45328f941503ebcd1d1618bdf8313a82a20"
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Editing directly on the canvas",
+      "description": "Editable headings, paragraphs and captions, photo drops, existing artwork assignment, and drag handles for image sizing.",
+      "commit": "3e1ca01dd74b7aabb14cd2ed77bde0052c46e947"
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Live preview and block drops",
+      "description": "Preview updates as content changes; blocks can be dragged onto the page and reordered.",
+      "commit": "a28f01976a87f4b2243bb805af28e16c619979dd"
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Initial portfolio builder",
+      "description": "Local Python launcher, pages and artwork blocks, page-flipping sketchbooks, Astro builds, and configured Cloudflare Pages publishing.",
+      "commit": "e1db04b7e9daa5617f5f86696da70372fe3b03df"
+    }
+  ],
+  "libraries": [
+    {
+      "package": "astro",
+      "name": "Astro",
+      "version": "6.4.8",
+      "license": "MIT",
+      "repository": "https://github.com/withastro/astro",
+      "feature": "Static portfolio export",
+      "detail": "Compiles the saved portfolio into static HTML, CSS and small interaction scripts when Build site or Publish is used. Runs locally during builds."
+    },
+    {
+      "package": "page-flip",
+      "name": "StPageFlip",
+      "version": "2.0.7",
+      "license": "MIT",
+      "repository": "https://github.com/Nodlik/StPageFlip",
+      "feature": "Interactive sketchbooks",
+      "detail": "Turns HTML sketchbook pages with mouse/touch interaction, hard/soft pages and portrait layouts. Used in the editor preview and exported sketchbook pages."
+    },
+    {
+      "package": "cropperjs",
+      "name": "Cropper.js",
+      "version": "2.2.0",
+      "license": "MIT",
+      "repository": "https://github.com/fengyuanchen/cropperjs",
+      "feature": "Image crop handles",
+      "detail": "Provides movable selections and aspect-ratio crop controls in the local image editor. Not shipped in portfolio pages."
+    },
+    {
+      "package": "pica",
+      "name": "Pica",
+      "version": "10.0.3",
+      "license": "MIT",
+      "repository": "https://github.com/nodeca/pica",
+      "feature": "High-quality image resizing",
+      "detail": "Resamples artwork when pixel dimensions are changed in the local image editor. Does not send images to an external service."
+    },
+    {
+      "package": "magic-wand-tool",
+      "name": "Magic Wand Tool",
+      "version": "1.1.7",
+      "license": "MIT",
+      "repository": "https://github.com/Tamersoul/magic-wand-js",
+      "feature": "Connected-background cutout",
+      "detail": "Selects connected pixels by color tolerance so the editor can remove their alpha. Runs in a local worker; this is color selection rather than AI subject segmentation."
+    },
+    {
+      "package": "Pillow",
+      "name": "Pillow",
+      "version": ">=11.0,<13",
+      "license": "MIT-CMU (HPND)",
+      "repository": "https://github.com/python-pillow/Pillow",
+      "feature": "Artwork import and web images",
+      "detail": "The Python server corrects orientation, removes metadata, preserves transparency, and creates thumbnail, responsive and full-size WebP copies. The original upload is preserved. Pillow's codec notices are documented upstream."
+    },
+    {
+      "package": "python-dotenv",
+      "name": "python-dotenv",
+      "version": ">=1.0,<2",
+      "license": "BSD-3-Clause",
+      "repository": "https://github.com/theskumar/python-dotenv",
+      "feature": "Local publishing configuration",
+      "detail": "Reads and writes the private .env configuration for the Cloudflare token, account and Pages project. Credentials stay outside portfolio content and generated pages."
+    },
+    {
+      "package": "wrangler",
+      "name": "Wrangler",
+      "version": "4.146.0",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/cloudflare/workers-sdk",
+      "feature": "Cloudflare Pages deployment",
+      "detail": "Uploads the built static site to the configured Pages project using the Cloudflare API. Invoked by the Python server when Publish is selected."
+    }
+  ],
+  "implementationNote": "Canvas text editing, block drag-and-drop, adjustment sliders, erase/restore brushes, workspace decorations, and procedural paper/ink use Folio Studio code with native browser APIs. No separate material or AI segmentation library is incorporated. System fonts need no font service.",
+  "inventoryNote": "The expandable inventory lists installed JavaScript packages, including indirect build and publishing dependencies. These packages support the direct libraries above; they are not all delivered to visitors. Versions and declared licenses come from installed package metadata. Package license files and upstream notices remain authoritative. Python dependency ranges come from requirements.txt."
+}

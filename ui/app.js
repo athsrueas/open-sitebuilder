@@ -8,6 +8,7 @@ import { blockLibraryMarkup, wireBlockSearch } from '/ui/block-library.js';
 import { escapeHtml as esc } from '/shared/render.js';
 import { editText, resizeImage, assignArtwork } from '/ui/canvas-model.js';
 const $ = s => document.querySelector(s);
+$('#about').onclick=async()=>{const button=$('#about');button.disabled=true;try{await (await import('/ui/about.js')).openAbout();}catch(error){toast(error.message);}finally{button.disabled=false;}};
 const id = () => crypto.randomUUID().replaceAll('-','');
 const types = Object.fromEntries(Object.entries(BLOCKS).map(([key,b])=>[key,[b.icon,b.name]]));
 let previewFrame=0,previewFocus=false;

@@ -12,6 +12,8 @@ if ($NpmCommand) {
     & $PnpmExe install
 }
 if ($LASTEXITCODE -ne 0) { throw 'Node dependency installation failed.' }
+& node "$StudioRoot\scripts\sync-about.mjs"
+if ($LASTEXITCODE -ne 0) { throw 'About documentation synchronization failed.' }
 $ShellObject = New-Object -ComObject WScript.Shell
 $ShortcutPath = Join-Path ([Environment]::GetFolderPath('Desktop')) 'Folio Studio.lnk'
 $Shortcut = $ShellObject.CreateShortcut($ShortcutPath)
