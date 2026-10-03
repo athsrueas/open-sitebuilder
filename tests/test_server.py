@@ -14,6 +14,16 @@ import server
 
 
 class ProjectValidationTests(unittest.TestCase):
+    def test_free_layout_bounds_and_mobile_validation(self):
+        project=server.default_project()
+        b=project['pages'][0]['blocks'][0]
+        b.update(type='freeLayout',mobileStack=True,layers=[dict(id=server.identifier(),kind='text',assetId='',text='Test',x=10,y=10,w=45,h=25,fontSize=32,color='#111111',background='#ffffff',opaque=False,fit='contain',mobile=dict(x=5,y=20,w=90,h=25))])
+        server.validate_project(project)
+        for change in [dict(x=float('nan')),dict(x=99),dict(w=0),dict(color='red'),dict(assetId='missing'),dict(mobile=dict(x=90,y=0,w=30,h=20))]:
+            candidate=copy.deepcopy(project)
+            candidate['pages'][0]['blocks'][0]['layers'][0].update(change)
+            with self.assertRaises(ValueError): server.validate_project(candidate)
+
     def test_theme_and_block_style_validation(self):
         p = server.default_project()
         for preset in server.STYLES['presets']:
@@ -128,6 +138,7 @@ class LocalApiTests(unittest.TestCase):
         p = server.load_project(); b = p['pages'][0]['blocks'][0]
         b.update(type='cards', images=[first['id'], version['id']], items=[{'title':'First','text':'','url':''},{'title':'Second','text':'','url':''}])
         book = p['pages'][0]['blocks'][1]; book['spreads'][0]['image'] = first['id']
+        free=copy.deepcopy(b);free.update(id=server.identifier(),type='freeLayout',images=[],mobileStack=True,layers=[dict(id=server.identifier(),kind='image',assetId=first['id'],text='',x=10,y=10,w=40,h=50,fontSize=32,color='#111111',background='#ffffff',opaque=False,fit='contain')]);free.pop('items',None);p['pages'][0]['blocks'].append(free)
         self.request('/api/project', p).close()
         with patch.object(server, 'recycle_media_folder', return_value=False):
             result = json.load(self.request('/api/media/delete', {'id':first['id'],'confirmed':True}))
@@ -136,6 +147,7 @@ class LocalApiTests(unittest.TestCase):
         self.assertNotIn('parentId', stored['assets'][0])
         self.assertEqual(stored['pages'][0]['blocks'][0]['images'], ['',version['id']])
         self.assertEqual(stored['pages'][0]['blocks'][1]['spreads'][0]['image'], '')
+        self.assertEqual(stored['pages'][0]['blocks'][2]['layers'][0]['assetId'],'')
         self.assertFalse((server.DATA/'originals'/(first['id']+'.png')).exists())
         self.assertFalse((server.DATA/'media'/(first['id']+'.webp')).exists())
         self.assertTrue((server.DATA/'media'/(version['id']+'.webp')).exists())
@@ -222,7 +234,7 @@ class LocalApiTests(unittest.TestCase):
         unused = json.load(self.request('/api/upload', buf.getvalue()))
         project = server.load_project()
         project['pages'][0]['blocks'][0]['type'] = 'image'
-        project['pages'][0]['blocks'][0]['images'] = [active['id']]
+        project['pages'][0]['blocks'][0].update(type='freeLayout',images=[],mobileStack=True,layers=[dict(id=server.identifier(),kind='image',assetId=active['id'],text='',x=10,y=10,w=40,h=50,fontSize=32,color='#111111',background='#ffffff',opaque=False,fit='contain')])
         project['assets'][0]['archived'] = True
         root = server.DATA / 'build-root'
         public = root / 'site/public/media'

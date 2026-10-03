@@ -1,4 +1,21 @@
 {
+  "freeLayout": {
+    "name": "Free layout",
+    "group": "Free canvas",
+    "icon": "▧",
+    "description": "Move, resize and overlap image and text layers freely",
+    "defaults": {
+      "layers": [],
+      "mobileStack": true
+    },
+    "fields": [
+      {
+        "key": "mobileStack",
+        "label": "Stack layers on phones",
+        "type": "checkbox"
+      }
+    ]
+  },
   "hero": {
     "name": "Introduction",
     "group": "Text",

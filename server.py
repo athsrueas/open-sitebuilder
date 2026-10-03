@@ -159,6 +159,24 @@ def validate_project(p):
                     if not isinstance(item, dict): raise ValueError('Invalid block item.')
                     check_text(item, ('title', 'text', 'url'))
                     if item['url'] and not valid_url(item['url']): raise ValueError('Invalid item link.')
+            if block['type'] == 'freeLayout':
+                layers = block.get('layers')
+                if not isinstance(layers, list) or len(layers) > 100 or not isinstance(block.get('mobileStack'), bool): raise ValueError('Invalid free layout.')
+                seen_layers = set()
+                for layer in layers:
+                    if not isinstance(layer, dict): raise ValueError('Invalid layer.')
+                    check_id(layer.get('id'))
+                    if layer['id'] in seen_layers: raise ValueError('Duplicate layer.')
+                    seen_layers.add(layer['id'])
+                    if layer.get('kind') not in ('image','text') or not isinstance(layer.get('text'), str) or len(layer['text']) > 20000: raise ValueError('Invalid layer content.')
+                    if layer.get('assetId') != '' and layer.get('assetId') not in assets: raise ValueError('Unknown layer image.')
+                    if layer.get('fit') not in ('contain','cover') or not isinstance(layer.get('opaque'),bool): raise ValueError('Invalid layer appearance.')
+                    if any(not COLOR.fullmatch(str(layer.get(k,''))) for k in ('color','background')): raise ValueError('Invalid layer color.')
+                    size=layer.get('fontSize')
+                    if type(size) not in (int,float) or not 8 <= size <= 160: raise ValueError('Invalid layer text size.')
+                    for geometry in [layer] + ([layer['mobile']] if 'mobile' in layer else []):
+                        if not isinstance(geometry,dict) or any(type(geometry.get(k)) not in (int,float) or not 0 <= geometry[k] <= 100 for k in ('x','y','w','h')): raise ValueError('Invalid layer bounds.')
+                        if geometry['w'] < 5 or geometry['h'] < 5 or geometry['x']+geometry['w'] > 100.01 or geometry['y']+geometry['h'] > 100.01: raise ValueError('Layer outside canvas.')
             if block.get('fit') not in ('contain', 'cover'):
                 raise ValueError('Invalid image fit.')
             for key, low, high in (('width', 20, 100), ('height', 120, 1200)):
@@ -189,7 +207,7 @@ def node_command(script, *args):
 def build_project(project):
     validate_project(project)
     used = {uid for page in project['pages'] for block in page['blocks']
-            for uid in [*block['images'], *(spread['image'] for spread in block['spreads'])] if uid}
+            for uid in [*block['images'], *(spread['image'] for spread in block['spreads']), *(layer['assetId'] for layer in block.get('layers',[]))] if uid}
     project = copy.deepcopy(project)
     project['assets'] = [asset for asset in project['assets'] if asset['id'] in used]
     for asset in project['assets']:
@@ -296,6 +314,8 @@ def delete_media(uid):
                 for block in page['blocks']:
                     # Cards retain slots so captions/links stay attached to their neighbors.
                     block['images'] = ['' if value == uid else value for value in block['images']] if block['type'] == 'cards' else [value for value in block['images'] if value != uid]
+                    for layer in block.get('layers', []):
+                        if layer['assetId'] == uid: layer['assetId'] = ''
                     for spread in block['spreads']:
                         if spread['image'] == uid: spread['image'] = ''
             validate_project(project)

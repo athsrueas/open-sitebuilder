@@ -45,10 +45,15 @@ The editor uses a minimal black-and-white interface. **Workspace** lets you choo
 - Resize a single image with its bottom-right corner handle, or the width/height sliders beneath it. Use **Crop to fill / Show whole photo** to change how it fits. Sizes are saved and included in the exported site. Move or duplicate blocks with their canvas controls, or drag the dotted handle to a green insertion line. **Details** opens the optional settings panel.
 - Browse **Add a block** in the sidebar or **All blocks** on the canvas. Both have search and collapsible categories; click a block or drag it onto the page. Search also matches descriptions.
 
-The library contains 25 blocks:
+**Free layout** is the first block in the library and has a prominent **+ Free layout** button above the canvas. It holds independent image and text layers. Drag an image or a layer's **Move** handle to position it; drag its bottom-right handle to resize. Text is edited directly. The layer selector lists the top layer first, including layers hidden behind others. Use Bring to front, Forward, Backward, or Send to back to control overlap. Layers can be duplicated and deleted, and text size/color, background transparency, image crop, and image editing are available beside the canvas. Arrow keys move a focused layer by 1%; Shift+arrows move it by 5%. Images dropped or imported onto this block become additional layers.
+
+Desktop and mobile arrangements are separate. **Mobile layout** opens a portrait canvas with independent layer positions and sizes. New blocks default to automatic mobile stacking. The canvas displays an explicit mobile status message; **Automatic mobile fix** restores a readable stack, and **Preview mobile result** shows the phone output. If custom mobile setup is incomplete after adding a layer, the exported site automatically stacks the entire block on phones until all layers have mobile positions. Mobile stacking uses the layer list's bottom-to-top order as reading order; review that order if desktop layering differs from the intended reading sequence.
+
+The library contains 26 blocks:
 
 | Group | Blocks |
 | --- | --- |
+| Free canvas | Free layout |
 | Text | Introduction, Text, Heading, Quote, List, Table, Accordion / FAQ, Code / preformatted |
 | Artwork | Image, Gallery, Carousel, Sketchbook, Image + text, Cover image, Artwork cards |
 | Media | Video, Audio |

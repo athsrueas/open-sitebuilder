@@ -1,3 +1,4 @@
+import {wireFreeLayout,freeEditorCss} from '/ui/free-layout-editor.js';
 import {measure} from '/ui/diagnostics.js';
 import {materialTextureCss} from '/shared/materials.js';
 import {styleVars} from '/shared/styles.js';
@@ -9,6 +10,7 @@ import { portfolioMarkup, initPortfolio } from '/shared/render.js';
 
 // Keep unchanged sketchbooks mounted while editing surrounding text.
 const root = document.querySelector('#portfolio');
+window.matchMedia('(max-width:650px)').addEventListener('change',e=>root.querySelectorAll(e.matches?'[data-mobile-preview]':'[data-mode=desktop]').forEach(button=>button.click()));
 let sections = new Map();
 const styleContexts=new WeakMap(),stylePanels=new WeakMap();
 let selectedBlockId;
@@ -48,10 +50,11 @@ editorStyle.textContent += `.canvas-styles{position:relative}.canvas-styles>summ
 editorStyle.textContent += `.editor-chrome,.canvas-tools{font-family:Arial,Helvetica,sans-serif;color:#111}.editor-chrome button,.canvas-tools button{color:#111;border-color:#bbb;border-radius:0;font-size:12px}.canvas-tools{border-bottom:1px solid #111}.canvas-tools span{color:#555}.block-tools{background:#fff;border-color:#bbb}.block-tools summary{font-size:12px}.canvas-style-fields{color:#111;border-color:#111;border-radius:0}.folio-block:not(.is-selected):not(:hover):not(:focus-within)>.block-tools{opacity:.5}.editor-chrome input,.editor-chrome select{color:#111;accent-color:#111}.editor-chrome button:focus-visible,.canvas-tools button:focus-visible{outline:2px solid #111;outline-offset:2px}`;
 editorStyle.textContent += `.editable-artwork{position:relative}.edit-image-context{position:absolute;left:8px;top:8px;z-index:6;padding:7px 9px;background:#fff;color:#111;border:1px solid #111;font:12px Arial,sans-serif;cursor:pointer}.editable-artwork:not(:hover):not(:focus-within) .edit-image-context{opacity:.65}.block-tools>.edit-image-context{position:static}`;
 editorStyle.textContent += `.folio-block:has(.canvas-styles[open]){z-index:100}.folio-block:has(.canvas-styles[open])>.block-tools{opacity:1}`;
+editorStyle.textContent+=freeEditorCss+`.canvas-tools [data-create="freeLayout"]{background:#111;color:#fff;font-weight:bold}`;
 document.head.append(editorStyle);
 const tools=document.createElement('div');
 tools.className='canvas-tools';
-tools.innerHTML='<span>Click text to write · Drop photos anywhere</span><button data-create="text">+ Text</button><button data-create="image">+ Image</button><button data-create="gallery">+ Gallery</button><button data-create="sketchbook">+ Sketchbook</button><button data-photos>Add photos</button>';
+tools.innerHTML='<span>Click text to write · Drop photos anywhere</span><button data-create="freeLayout">+ Free layout</button><button data-create="text">+ Text</button><button data-create="image">+ Image</button><button data-create="gallery">+ Gallery</button><button data-create="sketchbook">+ Sketchbook</button><button data-photos>Add photos</button>';
 const library=document.createElement('details');library.className='canvas-library';library.innerHTML='<summary>All blocks</summary>'+blockLibraryMarkup(esc,'data-create');tools.append(library);wireBlockSearch(library);
 library.querySelectorAll('[data-create]').forEach(button=>button.ondragstart=e=>{e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain','new:'+button.dataset.create);});
 document.body.prepend(tools);
@@ -72,7 +75,7 @@ function render(data) {
   const scroll = window.scrollY;
   const signatures=new Map(),assets=new Map(data.project.assets.map(a=>[a.id,a]));
   const markup = portfolioMarkup(data.project, data.pageId,{reuseBlock:b=>{
-    const ids=new Set([...(b.images||[]),...(b.spreads||[]).map(s=>s.image)]);
+    const ids=new Set([...(b.images||[]),...(b.spreads||[]).map(s=>s.image),...(b.layers||[]).map(l=>l.assetId)]);
     const signature=JSON.stringify({block:b,assets:[...ids].map(id=>assets.get(id))});signatures.set(b.id,signature);
     return sections.get(b.id)?.signature===signature?`<section data-block="${b.id}"></section>`:null;
   }});
@@ -139,13 +142,13 @@ function clearDrop(){marker.style.display='none';root.querySelectorAll('.image-d
 function dropDestination(e){
   const section=e.target.closest('[data-block]');
   const spread=e.target.closest('[data-spread-id]');
-  return {blockId:section?.dataset.block,spreadId:spread?.dataset.spreadId,itemIndex:e.target.closest('[data-item-index]')?Number(e.target.closest('[data-item-index]').dataset.itemIndex):undefined,beforeId:insertionPoint(e.clientY)?.dataset.block??null};
+  return {blockId:section?.dataset.block,spreadId:spread?.dataset.spreadId,itemIndex:e.target.closest('[data-item-index]')?Number(e.target.closest('[data-item-index]').dataset.itemIndex):undefined,layerId:e.target.closest('[data-layer]')?.dataset.layer,beforeId:insertionPoint(e.clientY)?.dataset.block??null};
 }
 document.addEventListener('dragover', e => {
   if(![...e.dataTransfer.types].some(t=>t==='text/plain'||t==='Files'))return;
   e.preventDefault();clearDrop();
   const section=e.target.closest('[data-block]');
-  if([...e.dataTransfer.types].includes('Files')&&section?.querySelector('.single-image,.gallery,.carousel,.book,.paired-image,.cover-image,.artwork-cards')){
+  if([...e.dataTransfer.types].includes('Files')&&section?.querySelector('.single-image,.gallery,.carousel,.book,.paired-image,.cover-image,.artwork-cards,.free-stage')){
     (e.target.closest('[data-spread-id]')||section).classList.add('image-drop');return;
   }
   const next=insertionPoint(e.clientY), main=root.querySelector('main');
@@ -200,6 +203,7 @@ function decorate(container,page,theme){
       edit.onclick=e=>{e.preventDefault();e.stopPropagation();send({type:'edit-image',blockId:b.id,assetId:img.dataset.assetId,spreadId:img.closest('[data-spread-id]')?.dataset.spreadId,imageIndex:b.images.indexOf(img.dataset.assetId)});};
     });
     section.prepend(toolbar);
+    if(b.type==='freeLayout')wireFreeLayout(section,b,{send,choosePhotos,esc});
     section.querySelectorAll('.folio-accordion details').forEach(item=>item.open=true);
     const fields=BLOCKS[b.type]?.fields||[];
     if(fields.length){

@@ -1,3 +1,4 @@
+import {freeLayoutMarkup,freeLayoutCss} from './free-layout.js';
 import { safeUrl, videoEmbed } from './blocks.js';
 export function extraBlockMarkup(b, project, {esc,image}) {
   const title=`<div class="eyebrow" data-edit="label">${esc(b.label)}</div><h2 data-edit="title">${esc(b.title)}</h2>`;
@@ -13,6 +14,7 @@ export function extraBlockMarkup(b, project, {esc,image}) {
     return `<article ${attr}><h3>${heading}</h3>${body}</article>`;
   }).join('');
   switch(b.type){
+    case 'freeLayout':return freeLayoutMarkup(b,project,esc);
     case 'heading':return title;
     case 'quote':return `<blockquote>${text}<cite data-edit="attribution">${esc(b.attribution)}</cite></blockquote>`;
     case 'list':return title+`<${b.ordered?'ol':'ul'} data-edit="text" class="folio-list">${String(b.text||'').split('\n').map(line=>`<li>${esc(line)}</li>`).join('')}</${b.ordered?'ol':'ul'}>`;
@@ -35,7 +37,7 @@ export function extraBlockMarkup(b, project, {esc,image}) {
     default:return '';
   }
 }
-export const extraBlockCss=`
+export const extraBlockCss=freeLayoutCss+`
   blockquote{border-left:3px solid currentColor;margin:0;padding:8px 24px;font-size:24px}cite{font:14px Arial,sans-serif}
   .folio-list{line-height:1.9;white-space:pre-wrap}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;text-align:left}td,th{border:1px solid #8885;padding:12px;min-width:100px}
   .folio-code{white-space:pre-wrap;overflow:auto;padding:20px;background:#8881;font:14px monospace}

@@ -1,3 +1,4 @@
+import {newLayer,validLayers} from '/shared/free-layout.js';
 import {measure} from '/ui/diagnostics.js';
 let imageEditorModule;
 import {openMediaLibrary} from '/ui/media-library.js';
@@ -42,7 +43,7 @@ function save(){
   clearTimeout(saveTimer);const snapshot=structuredClone(project), version=revision;
   saveQueue=saveQueue.catch(()=>{}).then(async()=>{ $('#save-status').textContent='Saving…';try{await api('project',snapshot);if(revision===version)$('#save-status').textContent='All changes saved';}catch(e){$('#save-status').textContent='Save failed';throw e;} });return saveQueue;
 }
-function makeBlock(type){return {id:id(),type,...structuredClone(BLOCKS[type].defaults),title:type==='hero'?'Introduction':types[type][1],label:'',text:BLOCKS[type].defaults.text||'',images:[],spreads:type==='sketchbook'?Array.from({length:4},(_,i)=>({id:id(),image:'',title:i===0?'Sketchbook':'',caption:'',background:'#faf7ef',fit:'contain',hard:i===0||i===3})):[],fit:'contain'};}
+function makeBlock(type){return {id:id(),type,...structuredClone(BLOCKS[type].defaults),title:type==='hero'?'Introduction':types[type][1],label:'',text:BLOCKS[type].defaults.text||'',images:[],spreads:type==='sketchbook'?Array.from({length:4},(_,i)=>({id:id(),image:'',title:i===0?'Sketchbook':'',caption:'',background:'#faf7ef',fit:'contain',hard:i===0||i===3})):[],fit:'contain',...(type==='freeLayout'?{layers:[newLayer('text')]}:{})};}
 function render(){measure('editorRender',()=>{renderLeft();renderInspector();});$('#artist-name').textContent=project.name;}
 function renderLeft(){
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
@@ -98,7 +99,7 @@ function renderInspector(){
   document.querySelectorAll('[data-spread]').forEach(el=>el.oninput=()=>{b.spreads[+el.dataset.spread][el.dataset.key]=el.type==='checkbox'?el.checked:el.value;changed();});
   document.querySelectorAll('[data-spread-up],[data-spread-down],[data-spread-delete]').forEach(el=>el.onclick=()=>{const i=+(el.dataset.spreadUp??el.dataset.spreadDown??el.dataset.spreadDelete);if(el.dataset.spreadDelete!==undefined)b.spreads.splice(i,1);else{const j=i+(el.dataset.spreadUp!==undefined?-1:1);[b.spreads[i],b.spreads[j]]=[b.spreads[j],b.spreads[i]];}changed();renderInspector();});
   $('#add-spread')?.addEventListener('click',()=>{b.spreads.push({id:id(),image:'',title:'',caption:'',background:'#faf7ef',hard:false,fit:'contain'});changed();renderInspector();});
-  $('#duplicate').onclick=()=>{const clone=structuredClone(b);clone.id=id();clone.spreads.forEach(s=>s.id=id());page().blocks.splice(page().blocks.indexOf(b)+1,0,clone);blockId=clone.id;changed(true);};
+  $('#duplicate').onclick=()=>{const clone=structuredClone(b);clone.id=id();clone.spreads.forEach(s=>s.id=id());clone.layers?.forEach(l=>l.id=id());page().blocks.splice(page().blocks.indexOf(b)+1,0,clone);blockId=clone.id;changed(true);};
   $('#delete-block').onclick=()=>deleteBlock(b.id);
 }
 function extraInspector(b){
@@ -139,13 +140,14 @@ window.addEventListener('message',e=>{
   if(d.type==='inline-edit'&&b&&editText(b,d.spreadId,d.field,d.value,d.itemIndex)){
     blockId=b.id;changed(false,false,true);renderLeft();renderInspector();
   }
-  if(d.type==='edit-image'&&b&&project.assets.some(a=>a.id===d.assetId))openImageEditor(d.assetId,{blockId:b.id,spreadId:d.spreadId,imageIndex:d.imageIndex}).catch(err=>toast(err.message));
+  if(d.type==='edit-image'&&b&&project.assets.some(a=>a.id===d.assetId))openImageEditor(d.assetId,{blockId:b.id,spreadId:d.spreadId,imageIndex:d.imageIndex,layerId:d.layerId}).catch(err=>toast(err.message));
   if(d.type==='edit-end')preview();
   if(d.type==='block-style'&&b&&setBlockStyle(b,d.key,d.value)){changed(false,false,true);renderInspector();}
   if(d.type==='reset-block-styles'&&b){delete b.styles;changed(true);}
   if(d.type==='item-link'&&b&&Number.isInteger(d.index)&&b.items?.[d.index]){if(!d.value||safeUrl(d.value)){b.items[d.index].url=d.value.trim();changed(false,false,Boolean(d.inline));}else if(!d.inline)toast('Use an HTTPS URL or /page/ link.');}
   if(d.type==='set-option'&&b)setOption(b,d.key,d.value,Boolean(d.inline));
   if(d.type==='item-action'&&b&&Array.isArray(b.items)){if(d.action==='add')b.items.push({title:'',text:'',url:''});if(d.action==='remove'&&Number.isInteger(d.index)&&d.index>=0&&d.index<b.items.length){b.items.splice(d.index,1);if(b.type==='cards')b.images.splice(d.index,1);}changed(true);}
+  if(d.type==='free-layout'&&b?.type==='freeLayout'&&validLayers(d.layers,project.assets)&&typeof d.mobileStack==='boolean'){blockId=b.id;b.layers=structuredClone(d.layers);b.mobileStack=d.mobileStack;changed(!d.inline,false,Boolean(d.inline));}
   if(d.type==='resize-image'&&b&&resizeImage(b,d.width,d.height))changed(true);
   if(d.type==='block-action'&&b){
     if(d.action==='delete'){deleteBlock(b.id);return;}
@@ -153,7 +155,7 @@ window.addEventListener('message',e=>{
     const i=page().blocks.indexOf(b);
     if(d.action==='up'&&i>0)[page().blocks[i-1],page().blocks[i]]=[b,page().blocks[i-1]];
     if(d.action==='down'&&i<page().blocks.length-1)[page().blocks[i+1],page().blocks[i]]=[b,page().blocks[i+1]];
-    if(d.action==='duplicate'){const clone=structuredClone(b);clone.id=id();clone.spreads.forEach(s=>s.id=id());page().blocks.splice(i+1,0,clone);blockId=clone.id;}
+    if(d.action==='duplicate'){const clone=structuredClone(b);clone.id=id();clone.spreads.forEach(s=>s.id=id());clone.layers?.forEach(l=>l.id=id());page().blocks.splice(i+1,0,clone);blockId=clone.id;}
     if(d.action==='fit'){const spread=b.spreads.find(s=>s.id===d.spreadId);const item=spread||b;item.fit=item.fit==='cover'?'contain':'cover';}
     changed(true,true);
   }
@@ -174,12 +176,12 @@ async function canvasArtwork(d){
     catch(err){toast(err.message);}
   }
   if(!ids.length)return;
-  if(!target||![...IMAGE_TYPES,'sketchbook'].includes(target.type)){
+  if(!target||![...IMAGE_TYPES,'sketchbook','freeLayout'].includes(target.type)){
     target=makeBlock(ids.length>1?'gallery':'image');
     const index=d.beforeId===null?destination.blocks.length:destination.blocks.findIndex(b=>b.id===d.beforeId);
     destination.blocks.splice(index<0?destination.blocks.length:index,0,target);
   }
-  assignArtwork(target,ids,d.spreadId||target.spreads[0]?.id,d.itemIndex);
+  if(target.type==='freeLayout'){for(const uid of ids){if(target.layers.length>=100){toast('Free layout supports up to 100 layers. Extra images remain in Media.');break;}const l=newLayer('image',uid);l.x=Math.min(55,10+target.layers.length*3);l.y=Math.min(40,10+target.layers.length*3);target.layers.push(l);}}else assignArtwork(target,ids,d.spreadId||target.spreads[0]?.id,d.itemIndex);
   if(pageId===destination.id)blockId=target.id;
   changed(true,true);toast('Artwork added.');
 }
@@ -188,13 +190,13 @@ async function openImageEditor(assetId,context=null,onSaved=()=>{}){
   const {editImage}=await (imageEditorModule??=import('/ui/image-editor.js'));
   await editImage(asset,{context:Boolean(context),save:async(blob,source)=>{await save();return api('upload',blob,{'Content-Type':'image/png','X-File-Name':encodeURIComponent(source.name.replace(/\.[^.]+$/,'')+'-edited.png'),'X-Source-Asset':source.id});},onSaved:async(edited,use)=>{
     edited.alt=asset.alt;project.assets.push(edited);
-    if(use&&context){const target=project.pages.flatMap(p=>p.blocks).find(b=>b.id===context.blockId);if(target){if(context.spreadId){const spread=target.spreads.find(s=>s.id===context.spreadId);if(spread?.image===assetId)spread.image=edited.id;}else if(target.images[context.imageIndex]===assetId)target.images[context.imageIndex]=edited.id;}}
-    else if(use){for(const p of project.pages)for(const b of p.blocks){b.images=b.images.map(id=>id===assetId?edited.id:id);for(const spread of b.spreads)if(spread.image===assetId)spread.image=edited.id;}}
+    if(use&&context){const target=project.pages.flatMap(p=>p.blocks).find(b=>b.id===context.blockId);if(target){if(context.layerId){const l=target.layers?.find(l=>l.id===context.layerId);if(l?.assetId===assetId)l.assetId=edited.id;}else if(context.spreadId){const spread=target.spreads.find(s=>s.id===context.spreadId);if(spread?.image===assetId)spread.image=edited.id;}else if(target.images[context.imageIndex]===assetId)target.images[context.imageIndex]=edited.id;}}
+    else if(use){for(const p of project.pages)for(const b of p.blocks){b.images=b.images.map(id=>id===assetId?edited.id:id);for(const l of b.layers||[])if(l.assetId===assetId)l.assetId=edited.id;for(const spread of b.spreads)if(spread.image===assetId)spread.image=edited.id;}}
     changed(true);await save();onSaved(edited);toast('Edited image saved as a new version.');
   }});
 }
-async function deleteImage(assetId){await save();const result=await api('media/delete',{id:assetId,confirmed:true});project=result.project;for(const {block:b} of deletedBlocks){b.images=b.type==='cards'?b.images.map(id=>id===assetId?'':id):b.images.filter(id=>id!==assetId);for(const spread of b.spreads)if(spread.image===assetId)spread.image='';}if(!page().blocks.some(b=>b.id===blockId))blockId=page().blocks[0]?.id;changed(true);return result;}
-function mediaLibrary(){openMediaLibrary({deleteImage,revealImage:assetId=>api('media/reveal',{id:assetId}),getProject:()=>project,upload:async files=>{await upload(files);await save();},edit:openImageEditor,onChange:()=>changed(),addToPage:assetId=>{const b=makeBlock('image');b.images=[assetId];page().blocks.push(b);blockId=b.id;changed(true,true);}});}
+async function deleteImage(assetId){await save();const result=await api('media/delete',{id:assetId,confirmed:true});project=result.project;for(const {block:b} of deletedBlocks){for(const l of b.layers||[])if(l.assetId===assetId)l.assetId='';b.images=b.type==='cards'?b.images.map(id=>id===assetId?'':id):b.images.filter(id=>id!==assetId);for(const spread of b.spreads)if(spread.image===assetId)spread.image='';}if(!page().blocks.some(b=>b.id===blockId))blockId=page().blocks[0]?.id;changed(true);return result;}
+function mediaLibrary(){openMediaLibrary({deleteImage,revealImage:assetId=>api('media/reveal',{id:assetId}),getProject:()=>project,upload:async files=>{await upload(files);await save();},edit:openImageEditor,onChange:()=>changed(),addToPage:assetId=>{if(block()?.type==='freeLayout'){if(block().layers.length>=100){toast('Free layout supports up to 100 layers.');return;}block().layers.push(newLayer('image',assetId));changed(true,true);return;}const b=makeBlock('image');b.images=[assetId];page().blocks.push(b);blockId=b.id;changed(true,true);}});}
 $('#media-library').onclick=mediaLibrary;
 $('#details').onclick=()=>{const expanded=document.querySelector('.workspace').classList.toggle('show-details');$('#details').setAttribute('aria-expanded',String(expanded));};
 $('#desktop').onclick=()=>{ $('#preview').classList.remove('mobile');$('#desktop').classList.add('active');$('#mobile').classList.remove('active');};

@@ -58,3 +58,5 @@ pre{color:#333;font-family:"Courier New",monospace}#job-link{color:#111}
   .toolbar-actions{width:100%;margin-left:0;gap:6px}.toolbar-actions button{flex:1 0 80px;min-width:0;padding:8px 6px}.toolbar-actions .primary{min-width:0;gap:5px}
   .preview-wrap{padding:0 8px}.decoration-palette{grid-template-columns:repeat(4,1fr)}
 }
+
+.block-group[data-group="Free canvas"] .palette{grid-template-columns:1fr}.block-group[data-group="Free canvas"] button{background:#111;color:#fff;font-weight:bold}
