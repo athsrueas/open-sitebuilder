@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-03",
+      "title": "Internal destinations and hidden navigation pages",
+      "description": "Explain link click behavior, give artwork card images and buttons the same destination, and add page-then-block destination selectors in the canvas and Details. Track destinations across page URL changes and reordering, flag deleted targets, show full page address examples, and optionally hide pages from the site menu while retaining their routes and link destinations. Resolve links to static HTML during Astro builds.",
+      "commit": "dd08e08a66d7a6dd0becf89a32b0e3a629710d8d"
+    },
+    {
+      "date": "2026-10-03",
       "title": "Image crop locks and editing workflow",
       "description": "Default to original image proportions, add common portrait and landscape ratios including 2:3 and 3:2, keep crop handles locked to the selected ratio, constrain selections to artwork, show pixel dimensions and reset selections. Preserve pending color adjustments across crop, resize, transform and cutout tool changes; improve crop cancellation and history.",
       "commit": "aebd33678e370ae06a2be1fbb4502ccc1dc646e6"
