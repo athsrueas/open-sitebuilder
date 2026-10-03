@@ -52,7 +52,8 @@ Open **Media** for the dedicated import and management screen. Import several JP
 
 Click **Edit image** on artwork in the canvas or on an image in the Images sidebar. The editor includes:
 
-- Crop with movable handles and free/square/portrait/landscape ratios; rotate and flip.
+- Crop defaults to the image’s original proportions. **Lock crop proportions** keeps corners and edges at the selected ratio; presets include 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9 and square. Choose Free for independent resizing, or hold Shift while dragging a free selection to keep its current ratio. Crops stay inside the artwork; Reset crop selection restores the largest selection that fits the chosen ratio. Rotate and flip remain available.
+- Pending color adjustments are preserved when cropping, resizing, rotating, flipping or switching cutout tools. Escape cancels an active crop; Undo and Redo restore image dimensions as well as pixels.
 - Pixel resizing with proportions locked by default and Pica's high-quality resampling.
 - Brightness, contrast, saturation, opacity, and grayscale; adjustment sliders preview live.
 - Color-based connected background removal with adjustable tolerance; erase/restore brushes with adjustable size and soft edges. This is a color selection tool, not AI subject segmentation.

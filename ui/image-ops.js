@@ -18,10 +18,18 @@ export function resizeDimensions(width,height,keepRatio,sourceWidth,sourceHeight
   return {width,height};
 }
 export function boundedCrop(selection,bounds,ratio){
+  if(![selection.x,selection.y,selection.width,selection.height,bounds.x,bounds.y,bounds.width,bounds.height].every(Number.isFinite))throw new Error('Invalid crop dimensions.');
   const left=Math.max(selection.x,bounds.x),top=Math.max(selection.y,bounds.y);
   const right=Math.min(selection.x+selection.width,bounds.x+bounds.width),bottom=Math.min(selection.y+selection.height,bounds.y+bounds.height);
   let width=right-left,height=bottom-top;
   if(width<1||height<1)throw new Error('Move the crop selection onto the image.');
   if(Number.isFinite(ratio)&&ratio>0){if(width/height>ratio)width=height*ratio;else height=width/ratio;}
   return {x:left+(right-left-width)/2,y:top+(bottom-top-height)/2,width,height};
+}
+
+export function cropRatio(value,width,height,current){
+  if(value==='free')return NaN;
+  const ratio=value==='original'?width/height:value==='current'?current.width/current.height:(()=>{const [w,h]=String(value).split(':').map(Number);return h===undefined?w:w/h;})();
+  if(!Number.isFinite(ratio)||ratio<=0)throw new Error('Choose a valid crop ratio.');
+  return ratio;
 }
