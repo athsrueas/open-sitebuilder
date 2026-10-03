@@ -5,6 +5,12 @@
   "history": [
     {
       "date": "2026-10-03",
+      "title": "Editable footer and visibility controls",
+      "description": "Hide the entire footer and separator without losing content, optionally show the artist name, edit multiline footer text directly in the canvas, and configure named links to pages, block shortcuts or external websites. Share the footer across portfolio pages, keep splash footers hidden, follow moved block destinations, validate saved footer settings, and omit editor controls from static exports.",
+      "commit": "1f7df5e47317813abcbc2dc7cb3280af259bda64"
+    },
+    {
+      "date": "2026-10-03",
       "title": "Move blocks between pages",
       "description": "Drag canvas or sidebar block handles onto sticky page names to move entire blocks, open the destination and select the moved block. Preserve artwork, sketchbook pages, free layers and styles; update internal block destinations. Offer a Move block to page selector in Details and reject full pages without modifying the portfolio.",
       "commit": "90588c0e4e1b7eafa5fe44abe756f9894aeea4da"
